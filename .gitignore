@@ -1,0 +1,16 @@
+build/
+car_showroom
+imgui.ini
+*.o
+*.d
+
+# IDE
+.vs/
+.vscode/
+*.sln
+*.vcxproj*
+*.user
+x64/
+Debug/
+Release/
+out/
