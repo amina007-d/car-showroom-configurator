@@ -79,15 +79,3 @@ material values (`Ns`, `Ks`, `d`) and keeps only baseColor textures (max 1–2K)
 The converted files are committed, so building the project does not need Python.
 If `assets/models/porsche930/car.obj` is missing, a placeholder car made of primitives is used.
 
-## Team
-
-| Member | Group | Responsibilities |
-|---|---|---|
-| | | |
-
-## AI Use
-
-| Tool | What for | What we changed |
-|---|---|---|
-| Claude (Anthropic) | Initial project skeleton: Makefile, Shader/Mesh/Camera/Texture/SceneNode classes, placeholder scene, ImGui panel | _fill in as you change it_ |
-| Claude (Anthropic) | `tools/gltf_to_obj.py` converter, `Model` OBJ loader, transparent pass, sRGB textures | _fill in as you change it_ |
