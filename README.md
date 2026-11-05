@@ -79,3 +79,7 @@ material values (`Ns`, `Ks`, `d`) and keeps only baseColor textures (max 1–2K)
 The converted files are committed, so building the project does not need Python.
 If `assets/models/porsche930/car.obj` is missing, a placeholder car made of primitives is used.
 
+
+## Wheel pivots
+
+The OBJ loader recentres each wheel around its bounding-box centre so it can rotate around its own axle.
