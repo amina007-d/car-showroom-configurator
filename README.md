@@ -82,4 +82,13 @@ If `assets/models/porsche930/car.obj` is missing, a placeholder car made of prim
 
 ## Wheel pivots
 
+<<<<<<< Updated upstream
 The OBJ loader recentres each wheel around its bounding-box centre so it can rotate around its own axle.
+=======
+## AI Use
+
+| Tool | What for | 
+|---|---|---|
+| Claude (Anthropic) | Initial project skeleton: Makefile, placeholder scene, ImGui panel |
+| Claude (Anthropic) | `tools/gltf_to_obj.py` converter, transparent pass, sRGB textures |
+>>>>>>> Stashed changes
