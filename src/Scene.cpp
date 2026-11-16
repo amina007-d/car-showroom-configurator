@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-// Paint presets for the configurator (colours are in linear space).
 const std::array<PaintPreset, 4> Scene::PAINTS = {{
     {"Matte black",   {0.015f, 0.015f, 0.017f},   6.0f, 0.08f},
     {"Glossy red",    {0.55f, 0.02f, 0.02f},    128.0f, 1.00f},
@@ -32,7 +31,6 @@ void Scene::build() {
     cylinder_ = Mesh::cylinder(48);
     sphere_ = Mesh::sphere(16, 24);
 
-    // Floor texture: assets/textures/floor.png if it exists, otherwise a procedural checker.
     floorTex_ = Texture::fromFile("assets/textures/floor.png");
     if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.10f, 0.10f, 0.11f}, {0.07f, 0.07f, 0.08f});
 
@@ -42,18 +40,15 @@ void Scene::build() {
 }
 
 void Scene::buildStudio() {
-    // Floor (textured, R5)
     auto floor = std::make_unique<SceneNode>("floor");
     floor->mesh = plane_.get();
     floor->material = {{1.0f, 1.0f, 1.0f}, 32.0f, 0.25f, {0, 0, 0}, floorTex_.get()};
     root_->addChild(std::move(floor));
 
-    // Walls
     Material wall{{0.06f, 0.06f, 0.07f}, 8.0f, 0.05f};
     addBox(root_.get(), "back wall", {0.0f, 4.0f, -9.0f}, {40.0f, 8.0f, 0.2f}, wall);
     addBox(root_.get(), "left wall", {-9.0f, 4.0f, 0.0f}, {0.2f, 8.0f, 40.0f}, wall);
 
-    // Turntable: base + rotating disc. The car is a child of the disc (R3).
     auto base = std::make_unique<SceneNode>("turntable base");
     base->mesh = cylinder_.get();
     base->position = {0.0f, 0.05f, 0.0f};
@@ -72,7 +67,6 @@ void Scene::buildStudio() {
     top->material = {{0.10f, 0.10f, 0.11f}, 64.0f, 0.6f};
     turntable_->addChild(std::move(top));
 
-    // Ring of small lamps around the turntable (decoration)
     for (int i = 0; i < 12; ++i) {
         float a = i / 12.0f * 6.2831853f;
         auto lamp = std::make_unique<SceneNode>("floor lamp");
@@ -88,7 +82,6 @@ void Scene::buildStudio() {
     buildCar(turntable_->addChild(std::move(car)));
 }
 
-// Loads the car model. Hierarchy: car -> body / wheel_* / shadow -> one child per material.
 void Scene::buildCar(SceneNode* car) {
     carModel_ = Model::load("assets/models/porsche930/car.obj");
     if (!carModel_) {
@@ -107,14 +100,13 @@ void Scene::buildCar(SceneNode* car) {
             node->mesh = part.mesh.get();
             node->material = part.material;
             SceneNode* n = g->addChild(std::move(node));
-            if (part.materialName == "paint") paint = &n->material;   // the configurator changes this one
+            if (part.materialName == "paint") paint = &n->material;
         }
     }
     if (paint) applyPaint(PAINTS[1]);
-    else buildPlaceholderCar(car);                                     // model without a "paint" material
+    else buildPlaceholderCar(car);
 }
 
-// Placeholder car built from primitives (used when the OBJ model is missing).
 void Scene::buildPlaceholderCar(SceneNode* car) {
     Material body{PAINTS[1].color, PAINTS[1].shininess, PAINTS[1].specular};
     paint = &addBox(car, "body", {0.0f, 0.55f, 0.0f}, {3.6f, 0.55f, 1.6f}, body)->material;
@@ -129,8 +121,6 @@ void Scene::buildPlaceholderCar(SceneNode* car) {
         addBox(car, "taillight", {-1.8f, 0.65f, z}, {0.04f, 0.12f, 0.35f}, taillight);
     }
 
-    // Wheels: group node (position + spin) -> tyre, rim and spoke.
-    // The group is unscaled, so scaling the tyre does not affect its children.
     Material tyre{{0.02f, 0.02f, 0.02f}, 8.0f, 0.1f};
     Material rim{{0.6f, 0.6f, 0.62f}, 96.0f, 0.9f};
     const glm::vec3 wheelPos[4] = {{1.15f, 0.35f, 0.8f}, {1.15f, 0.35f, -0.8f},
@@ -138,7 +128,7 @@ void Scene::buildPlaceholderCar(SceneNode* car) {
     for (int i = 0; i < 4; ++i) {
         auto wheel = std::make_unique<SceneNode>("wheel");
         wheel->position = wheelPos[i];
-        wheel->rotation = {90.0f, 0.0f, 0.0f};          // cylinder axis Y -> Z (the axle)
+        wheel->rotation = {90.0f, 0.0f, 0.0f};
         SceneNode* w = car->addChild(std::move(wheel));
         wheels_[i] = w;
 
@@ -160,15 +150,27 @@ void Scene::buildPlaceholderCar(SceneNode* car) {
 
 void Scene::buildLights() {
     lights = {
-        {"Key light (moving)", {4.0f, 5.0f, 3.0f}, {1.0f, 0.95f, 0.85f}, 1.2f},
-        {"Fill light",         {-5.0f, 3.0f, 4.0f}, {0.6f, 0.7f, 1.0f}, 0.6f},
-        {"Rim light",          {0.0f, 6.0f, -6.0f}, {1.0f, 1.0f, 1.0f}, 0.9f},
+        {"Key light (moving)", {4.0f, 5.0f, 3.0f}, {1.0f, 1.0f, 1.0f}, 1.0f},
+        {"Fill light",         {-5.0f, 3.0f, 4.0f}, {1.0f, 1.0f, 1.0f}, 1.0f},
+        {"Rim light",          {0.0f, 6.0f, -6.0f}, {1.0f, 1.0f, 1.0f}, 1.0f},
     };
     for (auto& l : lights) {
         auto m = std::make_unique<SceneNode>("light marker");
         m->mesh = sphere_.get();
         m->scale = glm::vec3(0.3f);
         l.marker = root_->addChild(std::move(m));
+    }
+    applyEnvironment(0);
+}
+
+void Scene::applyEnvironment(int index) {
+    int count = static_cast<int>(ENVIRONMENTS.size());
+    environment = (index % count + count) % count;
+    const Environment& env = ENVIRONMENTS[environment];
+    ambient = env.ambient;
+    for (size_t i = 0; i < lights.size() && i < env.lights.size(); ++i) {
+        lights[i].color = env.lights[i].color;
+        lights[i].intensity = env.lights[i].intensity;
     }
 }
 
@@ -177,13 +179,12 @@ void Scene::update(float dt) {
     if (!turntablePaused) tt->rotation.y += turntableSpeed * dt;
 
     for (SceneNode* w : wheels_)
-        if (w) w->rotation.z -= wheelSpin * dt;          // axle is the Z axis
+        if (w) w->rotation.z -= wheelSpin * dt;
 
     if (keyLightOrbits) keyLightAngle_ += 25.0f * dt;
     float a = glm::radians(keyLightAngle_);
     lights[0].position = {5.0f * std::cos(a), 5.0f, 5.0f * std::sin(a)};
 
-    // Markers glow in the light's colour when on, dark when off.
     for (auto& l : lights) {
         l.marker->position = l.position;
         l.marker->material = {{0.05f, 0.05f, 0.05f}, 8.0f, 0.0f,

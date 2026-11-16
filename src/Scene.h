@@ -1,7 +1,6 @@
-// Scene.h - the showroom: studio, turntable, car and studio lights.
-// Builds the scene graph once and animates it every frame.
 #pragma once
 
+#include "Environment.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "SceneNode.h"
@@ -19,7 +18,7 @@ struct PointLight {
     glm::vec3 color;
     float intensity;
     bool enabled = true;
-    SceneNode* marker = nullptr;   // small glowing sphere that shows where the light is
+    SceneNode* marker = nullptr;
 };
 
 struct PaintPreset {
@@ -31,22 +30,24 @@ struct PaintPreset {
 
 class Scene {
 public:
-    static constexpr int MAX_LIGHTS = 4;   // must match MAX_LIGHTS in phong.frag
+    static constexpr int MAX_LIGHTS = 4;
 
     void build();
     void update(float dt);
     void draw(const Shader& shader, bool transparentPass) const;
     void uploadLights(const Shader& shader) const;
 
-    // --- state changed by the UI / keyboard ---
-    float turntableSpeed = 20.0f;      // degrees per second
+    float turntableSpeed = 20.0f;
     bool turntablePaused = false;
-    bool keyLightOrbits = true;        // R4: the key light moves around the car
-    float wheelSpin = 0.0f;            // degrees per second, 0 = still
+    bool keyLightOrbits = true;
+    float wheelSpin = 0.0f;
     float ambient = 0.08f;
     std::vector<PointLight> lights;
 
-    Material* paint = nullptr;         // material of the car body (changed by the configurator)
+    int environment = 0;
+    void applyEnvironment(int index);
+
+    Material* paint = nullptr;
     static const std::array<PaintPreset, 4> PAINTS;
     void applyPaint(const PaintPreset& p);
 
@@ -54,7 +55,7 @@ private:
     std::unique_ptr<Mesh> cube_, plane_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<SceneNode> root_;
-    std::unique_ptr<Model> carModel_;   // must outlive the nodes that point to its meshes
+    std::unique_ptr<Model> carModel_;
 
     SceneNode* turntable_ = nullptr;
     std::array<SceneNode*, 4> wheels_{};
@@ -63,7 +64,7 @@ private:
     SceneNode* addBox(SceneNode* parent, const std::string& name, glm::vec3 pos,
                       glm::vec3 size, const Material& mat);
     void buildStudio();
-    void buildCar(SceneNode* parent);              // OBJ model, or the placeholder if it is missing
+    void buildCar(SceneNode* parent);
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();
 };
