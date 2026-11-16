@@ -1,54 +1,65 @@
 #!/usr/bin/env python3
-"""
-Converts the Sketchfab glTF export of "FREE 1975 Porsche 911 (930) Turbo"
-(Lionsharp Studios, CC BY 4.0) into one OBJ + MTL that our C++ loader reads.
-
-What it does:
-  * bakes every glTF node transform into world-space vertices
-  * drops the "coat" clear-coat shell (43k triangles, not needed for Blinn-Phong)
-  * rotates the car so it faces +X, puts the tyres on y = 0, centres it and
-    scales it to TARGET_LENGTH units
-  * writes objects: body, wheel_FL/FR/RL/RR (rim + tyre), shadow (ground plane)
-  * writes only baseColor textures, downscaled (we do not use PBR maps)
-
-Usage:  python3 tools/gltf_to_obj.py <path/to/scene.gltf> assets/models/porsche930
-Needs:  numpy, Pillow   (pip install numpy pillow)
-"""
+import fnmatch
 import json
 import os
+import re
 import shutil
 import sys
 
 import numpy as np
 from PIL import Image
 
-TARGET_LENGTH = 4.2                       # car length in scene units
-DROP_MATERIALS = {"coat"}                 # clear-coat shell
-WHEEL_MATERIALS = {"930_rim", "930_tire"}
-SHADOW_MATERIAL = "material_0"            # baked contact-shadow plane
-MAX_TEXTURE = {"930_plastics": 2048}      # default max size is 1024
-
-# Blinn-Phong parameters chosen by hand (glTF stores PBR values instead).
-# name: (shininess Ns, specular Ks, alpha d or None to keep glTF value)
-PHONG = {
-    "paint":                 (128, 1.0, None),
-    "930_plastics":          (24, 0.25, None),
-    "930_stickers":          (32, 0.3, None),
-    "plate":                 (32, 0.3, None),
-    "930_rim":               (64, 0.8, None),
-    "930_tire":              (6, 0.08, None),
-    "930_lights":            (128, 1.0, None),
-    "930_lights_refraction": (128, 1.0, 0.25),
-    "glass":                 (128, 1.0, 0.35),
-    "930_chromes":           (128, 1.0, None),
-    "black":                 (16, 0.2, None),
-    "930_wunderbaum":        (8, 0.1, None),
-    SHADOW_MATERIAL:         (1, 0.0, None),
+CARS = {
+    "porsche930": {
+        "front": "+z", "length": 4.2,
+        "paint": ["paint"],
+        "wheels": ["930_rim", "930_tire"],
+        "drop": ["coat"],
+        "tint": [],
+        "shadow": "material_0",
+        "max_texture": {"930_plastics": 2048},
+        "phong": {
+            "930_plastics": (24, 0.25, None), "930_stickers": (32, 0.3, None), "plate": (32, 0.3, None),
+            "930_rim": (64, 0.8, None), "930_tire": (6, 0.08, None), "930_lights": (128, 1.0, None),
+            "930_lights_refraction": (128, 1.0, 0.25), "glass": (128, 1.0, 0.35),
+            "930_chromes": (128, 1.0, None), "black": (16, 0.2, None), "930_wunderbaum": (8, 0.1, None),
+            "material_0": (1, 0.0, None),
+        },
+    },
+    "supra93": {
+        "front": "+z", "length": 4.43,
+        "paint": ["Body_Paint_-_White"],
+        "wheels": ["Tyre", "material", "Brake_Disc"],
+        "drop": ["Interior_-_Plastic", "Leather", "Leather_-_Dark", "Dashboard", "Carpet_2",
+                 "Seering_Wheel", "Seat_belt", "Gear_shifter*", "Interior_Detail*", "Speaker",
+                 "Window_Glass_-_Gauge", "Fuel_Alarm", "Defrost", "Radiator"],
+        "tint": ["Window_Glass", "Window_Glass_-_White", "Window_Glass_not_transparent"],
+        "phong": {"Tyre": (6, 0.08, None), "material": (64, 0.8, None), "Metal_-_Chrome": (128, 1.0, None),
+                  "Lights": (128, 1.0, None), "Rubber": (8, 0.1, None)},
+    },
+    "r34": {
+        "front": "+z", "length": 4.5,
+        "paint": ["*Paint_Material1"],
+        "wheels": ["*_Wheel1A_*", "riminside", "material"],
+        "drop": ["*InteriorA_Material1*", "*InteriorTillingA*", "*EngineA_Material1", "seat"],
+        "tint": ["*Window_Material1*"],
+        "phong": {"*Wheel1A_Material1.013": (64, 0.8, None), "riminside": (16, 0.2, None)},
+    },
+    "aventador": {
+        "front": "+x", "length": 4.7,
+        "paint": ["RED_PAINT"],
+        "wheels": ["*_Wheel2A_*"],
+        "drop": ["*InteriorA_Material", "*EngineA_Material", "*SeatBelt_Material"],
+        "tint": ["*Window_Material"],
+        "phong": {"*Carbon1_Material": (48, 0.5, None), "PLASTIC": (16, 0.2, None)},
+    },
 }
+
+TINT_COLOR = (0.02, 0.025, 0.03)
+TINT_ALPHA = 0.75
 
 COMPONENT = {5126: np.float32, 5125: np.uint32, 5123: np.uint16, 5121: np.uint8}
 COUNT = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}
-
 
 class Gltf:
     def __init__(self, path):
@@ -85,10 +96,9 @@ class Gltf:
         return t @ r @ s
 
     def primitives(self):
-        """List of dicts: owner node name, material, world positions/normals, uv, triangles."""
         out = []
 
-        def walk(i, parent_m, owner):
+        def walk(i, parent_m):
             node = self.g["nodes"][i]
             m = parent_m @ self.local_matrix(node)
             if "mesh" in node:
@@ -96,99 +106,127 @@ class Gltf:
                 for p in self.g["meshes"][node["mesh"]]["primitives"]:
                     at = p["attributes"]
                     pos = self.accessor(at["POSITION"]).astype(float)
-                    nrm = self.accessor(at["NORMAL"]).astype(float)
+                    nrm = self.accessor(at["NORMAL"]).astype(float) if "NORMAL" in at else np.tile([0, 1.0, 0], (len(pos), 1))
                     uv = self.accessor(at["TEXCOORD_0"]).astype(float) if "TEXCOORD_0" in at else np.zeros((len(pos), 2))
                     tri = self.accessor(p["indices"]).astype(np.int64).reshape(-1, 3)
                     if np.linalg.det(m[:3, :3]) < 0:
                         tri = tri[:, [0, 2, 1]]
                     nrm = (normal_m @ nrm.T).T
                     nrm /= np.linalg.norm(nrm, axis=1, keepdims=True) + 1e-12
-                    out.append({"owner": owner, "mat": self.g["materials"][p["material"]]["name"],
+                    out.append({"mat": self.g["materials"][p["material"]]["name"],
                                 "pos": (m[:3, :3] @ pos.T).T + m[:3, 3], "nrm": nrm, "uv": uv, "tri": tri})
             for c in node.get("children", []):
-                walk(c, m, owner if "mesh" in node else node.get("name", ""))
+                walk(c, m)
 
         for root in self.g["scenes"][0]["nodes"]:
-            walk(root, np.eye(4), "")
+            walk(root, np.eye(4))
         return out
 
+def matches(name, patterns):
+    return any(fnmatch.fnmatchcase(name, p) for p in patterns)
 
-def main(src, out_dir):
+def safe(name):
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", name)
+
+def sub_primitive(p, tri_mask):
+    tri = p["tri"][tri_mask]
+    used, inverse = np.unique(tri, return_inverse=True)
+    return {"mat": p["mat"], "pos": p["pos"][used], "nrm": p["nrm"][used], "uv": p["uv"][used],
+            "tri": inverse.reshape(-1, 3)}
+
+def main(car_id, src, out_dir):
+    cfg = CARS[car_id]
     gl = Gltf(src)
-    prims = [p for p in gl.primitives() if p["mat"] not in DROP_MATERIALS]
+    prims = [p for p in gl.primitives() if not matches(p["mat"], cfg["drop"]) and len(p["tri"])]
 
-    # Rotate +90 deg about Y so the car's front (+Z in the source) faces +X.
-    rot = np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]], float)
+    rot = np.eye(3)
+    if cfg["front"] == "+z":
+        rot = np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]], float)
     for p in prims:
         p["pos"] = p["pos"] @ rot.T
         p["nrm"] = p["nrm"] @ rot.T
 
-    car = np.vstack([p["pos"] for p in prims if p["mat"] != SHADOW_MATERIAL])
+    shadow = cfg.get("shadow")
+    car = np.vstack([p["pos"] for p in prims if p["mat"] != shadow])
     lo, hi = car.min(0), car.max(0)
-    scale = TARGET_LENGTH / (hi[0] - lo[0])
-    tyres = np.vstack([p["pos"] for p in prims if p["mat"] == "930_tire"])
-    offset = np.array([-(lo[0] + hi[0]) / 2, -tyres[:, 1].min(), -(lo[2] + hi[2]) / 2])
+    scale = cfg["length"] / (hi[0] - lo[0])
+    wheel_pts = np.vstack([p["pos"] for p in prims if matches(p["mat"], cfg["wheels"])])
+    offset = np.array([-(lo[0] + hi[0]) / 2, -wheel_pts[:, 1].min(), -(lo[2] + hi[2]) / 2])
     for p in prims:
         p["pos"] = (p["pos"] + offset) * scale
 
-    # Group wheel parts: the 4 big rim+tyre owners are wheels, tiny pieces join the nearest one.
-    wheel_owners = {}
-    for p in prims:
-        if p["mat"] in WHEEL_MATERIALS:
-            wheel_owners.setdefault(p["owner"], []).append(p)
-    big = {o: ps for o, ps in wheel_owners.items() if sum(len(q["tri"]) for q in ps) > 1000}
-    centres = {o: np.vstack([q["pos"] for q in ps]).mean(0) for o, ps in big.items()}
-    wheel_of = {}
-    for o, ps in wheel_owners.items():
-        c = np.vstack([q["pos"] for q in ps]).mean(0)
-        wheel_of[o] = min(centres, key=lambda k: np.linalg.norm(centres[k] - c))
-    labels = {}
-    for o, c in centres.items():          # front = +X, right side = +Z
-        labels[o] = "wheel_" + ("F" if c[0] > 0 else "R") + ("R" if c[2] > 0 else "L")
-
     objects = {}
     for p in prims:
-        if p["owner"] in wheel_of and p["mat"] in WHEEL_MATERIALS:
-            name = labels[wheel_of[p["owner"]]]
-        elif p["mat"] == SHADOW_MATERIAL:
-            name = "shadow"
+        if p["mat"] == shadow:
+            objects.setdefault("shadow", []).append(p)
+        elif matches(p["mat"], cfg["wheels"]):
+            centre = p["pos"][p["tri"]].mean(axis=1)
+            front, right = centre[:, 0] > 0, centre[:, 2] > 0
+            for f in (True, False):
+                for r in (True, False):
+                    mask = (front == f) & (right == r)
+                    if mask.any():
+                        name = "wheel_" + ("F" if f else "R") + ("R" if r else "L")
+                        objects.setdefault(name, []).append(sub_primitive(p, mask))
         else:
-            name = "body"
-        objects.setdefault(name, {}).setdefault(p["mat"], []).append(p)
+            objects.setdefault("body", []).append(p)
+
+    for parts in objects.values():
+        for p in parts:
+            p["out"] = "paint" if matches(p["mat"], cfg["paint"]) else safe(p["mat"])
 
     os.makedirs(os.path.join(out_dir, "textures"), exist_ok=True)
-    write_mtl(gl, out_dir, {p["mat"] for p in prims})
-    write_obj(out_dir, objects)
+    write_mtl(gl, cfg, out_dir, objects)
+    write_obj(out_dir, objects, gl)
     lic = os.path.join(gl.dir, "license.txt")
     if os.path.exists(lic):
         shutil.copy(lic, os.path.join(out_dir, "license.txt"))
 
-    total = sum(len(p["tri"]) for p in prims)
-    print(f"objects: {sorted(objects)}  triangles: {total}  scale: {scale:.3f}")
+    total = sum(len(p["tri"]) for parts in objects.values() for p in parts)
+    print(f"{car_id}: objects {sorted(objects)}  triangles {total}  scale {scale:.4f}")
 
+def phong_for(cfg, name, pbr):
+    for pattern, values in cfg.get("phong", {}).items():
+        if fnmatch.fnmatchcase(name, pattern):
+            return values
+    if matches(name, cfg["paint"]):
+        return (128, 1.0, None)
+    rough = pbr.get("roughnessFactor", 1.0)
+    metal = pbr.get("metallicFactor", 0.0)
+    ns = float(np.clip(2.0 / max(rough, 0.05) ** 4 - 2.0, 4, 128))
+    ks = float(np.clip(max(0.05, 1.0 - rough), 0.05, 1.0))
+    if metal > 0.5:
+        ks = max(ks, 0.6)
+    return (round(ns), round(ks, 2), None)
 
-def write_mtl(gl, out_dir, used):
-    lines = ["# Converted from glTF by tools/gltf_to_obj.py", ""]
-    for m in gl.g["materials"]:
-        name = m["name"]
-        if name not in used:
-            continue
+def write_mtl(gl, cfg, out_dir, objects):
+    by_name = {m["name"]: m for m in gl.g["materials"]}
+    wanted = {}
+    for parts in objects.values():
+        for p in parts:
+            wanted.setdefault(p["out"], p["mat"])
+
+    lines = [f"# Converted from glTF by tools/gltf_to_obj.py", ""]
+    for out, src in sorted(wanted.items()):
+        m = by_name[src]
         pbr = m.get("pbrMetallicRoughness", {})
         r, g, b, a = pbr.get("baseColorFactor", [1, 1, 1, 1])
-        ns, ks, alpha = PHONG.get(name, (32, 0.5, None))
+        ns, ks, alpha = phong_for(cfg, src, pbr)
         if alpha is None:
             alpha = a if m.get("alphaMode") == "BLEND" else 1.0
-        lines += [f"newmtl {name}", f"Kd {r:.4f} {g:.4f} {b:.4f}", f"Ks {ks} {ks} {ks}", f"Ns {ns}", f"d {alpha:.3f}"]
+        if matches(src, cfg["tint"]):
+            r, g, b = TINT_COLOR
+            alpha = TINT_ALPHA
+        lines += [f"newmtl {out}", f"Kd {r:.4f} {g:.4f} {b:.4f}", f"Ks {ks} {ks} {ks}", f"Ns {ns}", f"d {alpha:.3f}"]
         if m.get("doubleSided"):
             lines.append("double_sided 1")
         if m.get("alphaMode") == "BLEND" or alpha < 1.0:
-            lines.append("blend 1")           # drawn in the transparent pass
-        if "baseColorTexture" in pbr:
+            lines.append("blend 1")
+        if "baseColorTexture" in pbr and not matches(src, cfg["tint"]):
             img = gl.g["images"][gl.g["textures"][pbr["baseColorTexture"]["index"]]["source"]]
-            src = os.path.join(gl.dir, img["uri"])
-            dst = f"textures/{name}.png"
-            im = Image.open(src)
-            limit = MAX_TEXTURE.get(name, 1024)
+            dst = f"textures/{out}.png"
+            im = Image.open(os.path.join(gl.dir, img["uri"]))
+            limit = cfg.get("max_texture", {}).get(src, 1024)
             if max(im.size) > limit:
                 f = limit / max(im.size)
                 im = im.resize((max(1, int(im.width * f)), max(1, int(im.height * f))), Image.LANCZOS)
@@ -198,27 +236,26 @@ def write_mtl(gl, out_dir, used):
     with open(os.path.join(out_dir, "car.mtl"), "w") as f:
         f.write("\n".join(lines))
 
-
-def write_obj(out_dir, objects):
+def write_obj(out_dir, objects, gl):
+    extras = gl.g.get("asset", {}).get("extras", {})
     with open(os.path.join(out_dir, "car.obj"), "w") as f:
-        f.write("# FREE 1975 Porsche 911 (930) Turbo by Lionsharp Studios, CC BY 4.0\n")
+        f.write(f"# {extras.get('title', 'car model')} by {extras.get('author', 'unknown')}, {extras.get('license', '')}\n")
         f.write("# converted by tools/gltf_to_obj.py\nmtllib car.mtl\n")
         base = 1
         for name in sorted(objects):
             f.write(f"o {name}\n")
-            for mat, parts in objects[name].items():
-                for p in parts:
-                    n = len(p["pos"])
-                    f.write("".join(f"v {x:.5f} {y:.5f} {z:.5f}\n" for x, y, z in p["pos"]))
-                    f.write("".join(f"vt {u:.5f} {1 - v:.5f}\n" for u, v in p["uv"]))
-                    f.write("".join(f"vn {x:.4f} {y:.4f} {z:.4f}\n" for x, y, z in p["nrm"]))
-                    f.write(f"usemtl {mat}\n")
-                    t = p["tri"] + base
-                    f.write("".join(f"f {a}/{a}/{a} {b}/{b}/{b} {c}/{c}/{c}\n" for a, b, c in t))
-                    base += n
-
+            for p in sorted(objects[name], key=lambda q: q["out"]):
+                n = len(p["pos"])
+                f.write("".join(f"v {x:.5f} {y:.5f} {z:.5f}\n" for x, y, z in p["pos"]))
+                f.write("".join(f"vt {u:.5f} {1 - v:.5f}\n" for u, v in p["uv"]))
+                f.write("".join(f"vn {x:.4f} {y:.4f} {z:.4f}\n" for x, y, z in p["nrm"]))
+                f.write(f"usemtl {p['out']}\n")
+                t = p["tri"] + base
+                f.write("".join(f"f {a}/{a}/{a} {b}/{b}/{b} {c}/{c}/{c}\n" for a, b, c in t))
+                base += n
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    if len(sys.argv) not in (3, 4) or sys.argv[1] not in CARS:
+        sys.exit("usage: python3 tools/gltf_to_obj.py <car id> <scene.gltf> [output dir]\nKnown cars: " + ", ".join(CARS))
+    car_id, src = sys.argv[1], sys.argv[2]
+    main(car_id, src, sys.argv[3] if len(sys.argv) == 4 else os.path.join("assets", "models", car_id))
