@@ -1,5 +1,3 @@
-// App.h - owns the scene, camera and shader; handles input, the ImGui
-// panel and the per-frame update/render. main.cpp forwards GLUT callbacks here.
 #pragma once
 
 #include "Camera.h"
@@ -12,7 +10,7 @@ class App {
 public:
     App(int width, int height);
 
-    void frame();                                    // update + render one frame
+    void frame();
     void resize(int w, int h);
     void keyDown(unsigned char key);
     void keyUp(unsigned char key);
@@ -28,19 +26,16 @@ private:
     Scene scene_;
     Camera camera_;
 
-    // timing
     int lastTimeMs_ = 0;
     float fpsTimer_ = 0.0f;
     int fpsFrames_ = 0;
     float fps_ = 0.0f;
 
-    // input state
     bool keys_[256] = {};
-    bool arrows_[4] = {};                            // left, right, up, down
+    bool arrows_[4] = {};
     bool dragging_ = false;
     int lastMouseX_ = 0, lastMouseY_ = 0;
 
-    // UI state
     bool showUI_ = true;
     int paintIndex_ = 1;
 
@@ -48,4 +43,5 @@ private:
     void render();
     void drawUI();
     void updateFps(float dt);
+    void toggleAllLights();
 };

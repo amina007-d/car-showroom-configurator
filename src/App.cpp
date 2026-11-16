@@ -12,18 +12,14 @@ App::App(int width, int height) : width_(width), height_(height) {
     scene_.build();
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);       // all meshes use counter-clockwise front faces
+    glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
     lastTimeMs_ = glutGet(GLUT_ELAPSED_TIME);
 }
 
-// ---------------------------------------------------------------------------
-// Frame
-// ---------------------------------------------------------------------------
-
 void App::frame() {
     int now = glutGet(GLUT_ELAPSED_TIME);
-    float dt = std::min((now - lastTimeMs_) / 1000.0f, 0.1f);   // seconds, clamped after stalls
+    float dt = std::min((now - lastTimeMs_) / 1000.0f, 0.1f);
     lastTimeMs_ = now;
 
     update(dt);
@@ -32,7 +28,6 @@ void App::frame() {
 }
 
 void App::update(float dt) {
-    // Keyboard camera: speeds are per second, multiplied by dt -> frame-rate independent.
     const float rotSpeed = 90.0f, zoomSpeed = 6.0f;
     float yaw = 0, pitch = 0, zoom = 0;
     if (keys_['a'] || arrows_[0]) yaw -= 1;
@@ -56,7 +51,7 @@ void App::updateFps(float dt) {
         fpsFrames_ = 0;
         char title[96];
         std::snprintf(title, sizeof(title), "Car Showroom Configurator | FPS: %.1f", fps_);
-        glutSetWindowTitle(title);                              // R7: FPS counter
+        glutSetWindowTitle(title);
     }
 }
 
@@ -72,8 +67,6 @@ void App::render() {
     shader_->setInt("uTexture", 0);
     scene_.uploadLights(*shader_);
 
-    // Pass 1: opaque geometry. Pass 2: transparent geometry (glass, lights, shadow)
-    // blended over it, without writing depth so it does not hide what is behind it.
     scene_.draw(*shader_, false);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -84,10 +77,6 @@ void App::render() {
 
     drawUI();
 }
-
-// ---------------------------------------------------------------------------
-// ImGui panel (C3: on-screen controls help)
-// ---------------------------------------------------------------------------
 
 void App::drawUI() {
     if (!showUI_) return;
@@ -124,6 +113,7 @@ void App::drawUI() {
     if (ImGui::CollapsingHeader("Lights")) {
         ImGui::SliderFloat("Ambient", &scene_.ambient, 0.0f, 0.5f);
         ImGui::Checkbox("Key light orbits", &scene_.keyLightOrbits);
+        if (ImGui::Button("All lights on / off")) toggleAllLights();
         for (size_t i = 0; i < scene_.lights.size(); ++i) {
             PointLight& l = scene_.lights[i];
             ImGui::PushID(static_cast<int>(i));
@@ -146,6 +136,7 @@ void App::drawUI() {
             "Space          pause turntable\n"
             "[ / ]          turntable speed\n"
             "1 2 3          toggle lights\n"
+            "0              all lights on / off\n"
             "L              key light orbit on/off\n"
             "V              spin wheels\n"
             "H              hide / show this panel\n"
@@ -154,10 +145,6 @@ void App::drawUI() {
     if (ImGui::Button("Reset camera")) camera_.reset();
     ImGui::End();
 }
-
-// ---------------------------------------------------------------------------
-// Input
-// ---------------------------------------------------------------------------
 
 void App::resize(int w, int h) {
     width_ = w;
@@ -187,6 +174,7 @@ void App::keyDown(unsigned char key) {
             if (p.shininess > 32.0f) { p.shininess = 6.0f;   p.specular = 0.08f; }
             else                     { p.shininess = 128.0f; p.specular = 1.0f; }
             break;
+        case '0': toggleAllLights(); break;
         case '1': case '2': case '3': {
             size_t i = key - '1';
             if (i < scene_.lights.size()) scene_.lights[i].enabled = !scene_.lights[i].enabled;
@@ -194,6 +182,12 @@ void App::keyDown(unsigned char key) {
         }
         default: break;
     }
+}
+
+void App::toggleAllLights() {
+    bool anyOn = false;
+    for (const PointLight& l : scene_.lights) anyOn = anyOn || l.enabled;
+    for (PointLight& l : scene_.lights) l.enabled = !anyOn;
 }
 
 void App::keyUp(unsigned char key) {
@@ -222,7 +216,7 @@ void App::specialUp(int key) {
 }
 
 void App::mouseButton(int button, int state, int x, int y) {
-    if (button == 3 || button == 4) {                // some systems report the wheel as buttons
+    if (button == 3 || button == 4) {
         if (state == GLUT_DOWN) mouseWheel(button == 3 ? 1 : -1);
         return;
     }
@@ -235,7 +229,7 @@ void App::mouseButton(int button, int state, int x, int y) {
 
 void App::mouseMotion(int x, int y) {
     if (!dragging_) return;
-    const float sensitivity = 0.3f;                  // degrees per pixel
+    const float sensitivity = 0.3f;
     camera_.rotate(-(x - lastMouseX_) * sensitivity, (y - lastMouseY_) * sensitivity);
     lastMouseX_ = x;
     lastMouseY_ = y;
