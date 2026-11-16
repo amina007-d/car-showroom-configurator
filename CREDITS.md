@@ -25,3 +25,4 @@
 
 Credit line requested by the author: *This work is based on "FREE 1975 Porsche 911 (930) Turbo" by Lionsharp Studios,
 licensed under CC-BY-4.0.* Vehicle design © Porsche AG.
+| 1993 Toyota Supra — converted to OBJ, interior removed, textures downscaled | ShaheerHashmi | https://sketchfab.com/3d-models/1993-toyota-supra-0c810d1e1fc74f14b9254bba09539f7b | CC BY 4.0 |

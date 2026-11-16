@@ -1,0 +1,157 @@
+# Converted from glTF by tools/gltf_to_obj.py
+
+newmtl Body_AO
+Kd 1.0000 1.0000 1.0000
+Ks 0.68 0.68 0.68
+Ns 128
+d 1.000
+double_sided 1
+map_Kd textures/Body_AO.png
+
+newmtl Brake_Disc
+Kd 1.0000 1.0000 1.0000
+Ks 0.45 0.45 0.45
+Ns 19
+d 1.000
+double_sided 1
+map_Kd textures/Brake_Disc.png
+
+newmtl Caliper
+Kd 1.0000 1.0000 1.0000
+Ks 0.39 0.39 0.39
+Ns 12
+d 1.000
+double_sided 1
+map_Kd textures/Caliper.png
+
+newmtl Exhaust
+Kd 0.0833 0.0833 0.0833
+Ks 0.89 0.89 0.89
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Light-Detail
+Kd 1.0000 1.0000 1.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+map_Kd textures/Light-Detail.png
+
+newmtl Lights
+Kd 0.3306 1.0000 0.9583
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Metal_-_Black
+Kd 0.0000 0.0000 0.0000
+Ks 0.82 0.82 0.82
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Metal_-_Chrome
+Kd 1.0000 1.0000 1.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Mirror
+Kd 0.8000 0.8000 0.8000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Num_Plate
+Kd 0.0000 0.0000 0.0000
+Ks 0.9 0.9 0.9
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl Plastic_-_Matte_-_Black
+Kd 0.0000 0.0000 0.0000
+Ks 0.6 0.6 0.6
+Ns 35
+d 1.000
+double_sided 1
+
+newmtl Rubber
+Kd 0.0000 0.0000 0.0000
+Ks 0.1 0.1 0.1
+Ns 8
+d 1.000
+double_sided 1
+
+newmtl Step
+Kd 0.0000 0.0000 0.0000
+Ks 0.6 0.6 0.6
+Ns 35
+d 1.000
+double_sided 1
+
+newmtl Structure
+Kd 0.0000 0.0000 0.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl Tyre
+Kd 1.0000 1.0000 1.0000
+Ks 0.08 0.08 0.08
+Ns 6
+d 1.000
+double_sided 1
+map_Kd textures/Tyre.png
+
+newmtl Window_Glass
+Kd 0.0200 0.0250 0.0300
+Ks 0.05 0.05 0.05
+Ns 4
+d 0.750
+double_sided 1
+blend 1
+
+newmtl Window_Glass-Rear
+Kd 1.0000 0.0000 0.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 0.156
+double_sided 1
+blend 1
+
+newmtl Window_Glass_-_White
+Kd 0.0200 0.0250 0.0300
+Ks 0.05 0.05 0.05
+Ns 4
+d 0.750
+double_sided 1
+blend 1
+
+newmtl Window_Glass_not_transparent
+Kd 0.0200 0.0250 0.0300
+Ks 0.05 0.05 0.05
+Ns 4
+d 0.750
+double_sided 1
+blend 1
+
+newmtl material
+Kd 1.0000 1.0000 1.0000
+Ks 0.8 0.8 0.8
+Ns 64
+d 1.000
+double_sided 1
+
+newmtl paint
+Kd 0.0000 1.0000 0.8951
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
