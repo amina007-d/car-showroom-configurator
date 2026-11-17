@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Camera.h"
+#include "Cubemap.h"
 #include "Scene.h"
 #include "Shader.h"
+#include "Skybox.h"
 
 #include <memory>
 
@@ -23,6 +25,8 @@ public:
 private:
     int width_, height_;
     std::unique_ptr<Shader> shader_;
+    std::unique_ptr<Skybox> skybox_;
+    std::unique_ptr<Cubemap> sky_;
     Scene scene_;
     Camera camera_;
 

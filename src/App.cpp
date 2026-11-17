@@ -10,10 +10,14 @@
 App::App(int width, int height) : width_(width), height_(height) {
     shader_ = std::make_unique<Shader>("shaders/phong.vert", "shaders/phong.frag");
     scene_.build();
+    skybox_ = std::make_unique<Skybox>();
+    const Environment& studio = ENVIRONMENTS[0];
+    sky_ = Cubemap::gradient(64, studio.skyTop, studio.skyHorizon, studio.skyBottom);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     lastTimeMs_ = glutGet(GLUT_ELAPSED_TIME);
 }
 
@@ -68,6 +72,8 @@ void App::render() {
     scene_.uploadLights(*shader_);
 
     scene_.draw(*shader_, false);
+    skybox_->draw(*sky_, camera_.view(), camera_.projection(static_cast<float>(width_) / std::max(height_, 1)));
+    shader_->use();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
