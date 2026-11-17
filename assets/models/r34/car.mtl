@@ -1,0 +1,239 @@
+# Converted from glTF by tools/gltf_to_obj.py
+
+newmtl ambar_glass
+Kd 1.0000 1.0000 1.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 0.456
+double_sided 1
+blend 1
+
+newmtl brack
+Kd 1.0000 1.0000 1.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+map_Kd textures/brack.png
+
+newmtl cal_m
+Kd 0.0000 0.0000 0.0000
+Ks 0.75 0.75 0.75
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl lightpao
+Kd 1.0000 1.0000 1.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl material
+Kd 0.4467 0.4467 0.4467
+Ks 0.81 0.81 0.81
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl paint
+Kd 0.5410 0.5410 0.5410
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+map_Kd textures/paint.png
+
+newmtl rNissan_SkylineGTRR34F2_1999BadgeA_Material1
+Kd 1.0000 1.0000 1.0000
+Ks 0.83 0.83 0.83
+Ns 128
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999BadgeA_Material1.png
+
+newmtl rNissan_SkylineGTRR34F2_1999Base_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 0.07 0.07 0.07
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999CalliperBadgeA_Material1
+Kd 1.0000 1.0000 1.0000
+Ks 0.4 0.4 0.4
+Ns 13
+d 0.000
+double_sided 1
+blend 1
+
+newmtl rNissan_SkylineGTRR34F2_1999CalliperGloss_Material1
+Kd 0.3980 0.0358 0.0358
+Ks 0.8 0.8 0.8
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999Carbon1_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999Coloured_Material1
+Kd 0.2484 0.2484 0.2484
+Ks 0.64 0.64 0.64
+Ns 120
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999Coloured_Material1.png
+
+newmtl rNissan_SkylineGTRR34F2_1999Grille1A_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999Grille2A_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999Grille3A_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999Grille3A_Material1.png
+
+newmtl rNissan_SkylineGTRR34F2_1999Grille4A_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999LightA_Material1
+Kd 0.2140 0.2140 0.2140
+Ks 0.92 0.92 0.92
+Ns 128
+d 0.990
+double_sided 1
+blend 1
+
+newmtl rNissan_SkylineGTRR34F2_1999LightA_Material1.001
+Kd 0.4530 0.4530 0.4530
+Ks 0.89 0.89 0.89
+Ns 128
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999ManufacturerPlateA_Material1
+Kd 0.0000 0.0000 0.0000
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999ManufacturerPlateA_Material1.png
+
+newmtl rNissan_SkylineGTRR34F2_1999TexturedA_Material1
+Kd 0.4251 0.4251 0.4251
+Ks 0.62 0.62 0.62
+Ns 91
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999TexturedA_Material1.png
+
+newmtl rNissan_SkylineGTRR34F2_1999Window_Material1
+Kd 0.0200 0.0250 0.0300
+Ks 1.0 1.0 1.0
+Ns 128
+d 0.750
+double_sided 1
+blend 1
+
+newmtl rNissan_SkylineGTRR34F2_1999Window_Material1.001
+Kd 0.0200 0.0250 0.0300
+Ks 1.0 1.0 1.0
+Ns 128
+d 0.750
+double_sided 1
+blend 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.001
+Kd 1.0000 1.0000 1.0000
+Ks 0.41 0.41 0.41
+Ns 15
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.002
+Kd 0.0063 0.0063 0.0063
+Ks 0.51 0.51 0.51
+Ns 34
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.003
+Kd 0.0050 0.0050 0.0050
+Ks 0.16 0.16 0.16
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.004
+Kd 0.0006 0.0006 0.0006
+Ks 0.25 0.25 0.25
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.005
+Kd 0.0168 0.0168 0.0168
+Ks 0.05 0.05 0.05
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.007
+Kd 0.0005 0.0005 0.0005
+Ks 0.08 0.08 0.08
+Ns 4
+d 1.000
+double_sided 1
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.012
+Kd 1.0000 1.0000 1.0000
+Ks 0.79 0.79 0.79
+Ns 128
+d 1.000
+double_sided 1
+map_Kd textures/rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.012.png
+
+newmtl rNissan_SkylineGTRR34F2_1999_Wheel1A_3D_3DWheel1A_Material1.013
+Kd 0.5260 0.5260 0.5260
+Ks 0.8 0.8 0.8
+Ns 64
+d 1.000
+double_sided 1
+
+newmtl red_glass
+Kd 1.0000 0.0000 0.0000
+Ks 1.0 1.0 1.0
+Ns 128
+d 0.250
+double_sided 1
+blend 1
+
+newmtl riminside
+Kd 0.0342 0.0342 0.0342
+Ks 0.2 0.2 0.2
+Ns 16
+d 1.000
+double_sided 1

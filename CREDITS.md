@@ -21,8 +21,13 @@
 
 | Asset | Author | Link | License |
 |---|---|---|---|
-| FREE 1975 Porsche 911 (930) Turbo — converted to OBJ, clear-coat mesh removed, textures downscaled | Lionsharp Studios | https://sketchfab.com/3d-models/free-1975-porsche-911-930-turbo-8568d9d14a994b9cae59499f0dbed21e | CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/) |
-
-Credit line requested by the author: *This work is based on "FREE 1975 Porsche 911 (930) Turbo" by Lionsharp Studios,
-licensed under CC-BY-4.0.* Vehicle design © Porsche AG.
+| FREE 1975 Porsche 911 (930) Turbo — converted to OBJ, clear-coat mesh removed, textures downscaled | Lionsharp Studios | https://sketchfab.com/3d-models/free-1975-porsche-911-930-turbo-8568d9d14a994b9cae59499f0dbed21e | CC BY 4.0 |
 | 1993 Toyota Supra — converted to OBJ, interior removed, textures downscaled | ShaheerHashmi | https://sketchfab.com/3d-models/1993-toyota-supra-0c810d1e1fc74f14b9254bba09539f7b | CC BY 4.0 |
+| Nissan R34 Brians Fast Furious — converted to OBJ, interior and engine removed | vecarz | https://sketchfab.com/3d-models/nissan-r34-brians-fast-furious-wwwvecarzcom-412aa249c2f548eebf64bdb35f3553af | CC BY 4.0 |
+
+Licenses: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+
+Credit line requested by Lionsharp Studios: *This work is based on "FREE 1975 Porsche 911 (930) Turbo" by Lionsharp Studios,
+licensed under CC-BY-4.0.* Vehicle design © Porsche AG.
+
+Vehicle designs © Toyota, Nissan. The models are used for a non-commercial university project.
