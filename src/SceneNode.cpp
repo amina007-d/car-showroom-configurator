@@ -29,6 +29,7 @@ void SceneNode::draw(const Shader& shader, const glm::mat4& parentWorld, bool tr
         shader.setFloat("uMaterial.specular", material.specular);
         shader.setVec3("uMaterial.emissive", material.emissive);
         shader.setFloat("uMaterial.alpha", material.alpha);
+        shader.setFloat("uMaterial.reflectivity", material.reflectivity);
         shader.setBool("uMaterial.useTexture", material.texture != nullptr);
         if (material.texture) material.texture->bind(0);
         if (material.doubleSided) glDisable(GL_CULL_FACE);

@@ -67,6 +67,8 @@ void App::render() {
     shader_->setMat4("uProjection", camera_.projection(static_cast<float>(width_) / std::max(height_, 1)));
     shader_->setVec3("uViewPos", camera_.position());
     shader_->setInt("uTexture", 0);
+    shader_->setInt("uEnvMap", 1);
+    scene_.environmentMap().bind(1);
     scene_.uploadLights(*shader_);
 
     scene_.draw(*shader_, false);
@@ -110,9 +112,9 @@ void App::drawUI() {
         ImGui::ColorEdit3("Colour", &p.color.x);
         ImGui::SliderFloat("Shininess", &p.shininess, 1.0f, 256.0f, "%.0f", ImGuiSliderFlags_Logarithmic);
         ImGui::SliderFloat("Specular", &p.specular, 0.0f, 1.0f);
-        if (ImGui::Button("Matte")) { p.shininess = 6.0f; p.specular = 0.08f; }
+        if (ImGui::Button("Matte")) { p.shininess = 6.0f; p.specular = 0.08f; p.reflectivity = 0.02f; }
         ImGui::SameLine();
-        if (ImGui::Button("Glossy")) { p.shininess = 128.0f; p.specular = 1.0f; }
+        if (ImGui::Button("Glossy")) { p.shininess = 128.0f; p.specular = 1.0f; p.reflectivity = 0.15f; }
     }
 
     if (ImGui::CollapsingHeader("Turntable", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -183,8 +185,8 @@ void App::keyDown(unsigned char key) {
             scene_.applyPaint(Scene::PAINTS[paintIndex_]);
             break;
         case 'm':
-            if (p.shininess > 32.0f) { p.shininess = 6.0f;   p.specular = 0.08f; }
-            else                     { p.shininess = 128.0f; p.specular = 1.0f; }
+            if (p.shininess > 32.0f) { p.shininess = 6.0f;   p.specular = 0.08f; p.reflectivity = 0.02f; }
+            else                     { p.shininess = 128.0f; p.specular = 1.0f;  p.reflectivity = 0.15f; }
             break;
         case '0': toggleAllLights(); break;
         case 'n': scene_.applyEnvironment(scene_.environment + 1); break;

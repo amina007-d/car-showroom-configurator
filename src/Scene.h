@@ -27,6 +27,7 @@ struct PaintPreset {
     glm::vec3 color;
     float shininess;
     float specular;
+    float reflectivity;
 };
 
 class Scene {

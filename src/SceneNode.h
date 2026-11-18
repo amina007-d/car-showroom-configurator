@@ -16,6 +16,7 @@ struct Material {
     glm::vec3 emissive{0.0f};
     const Texture* texture = nullptr;
     float alpha = 1.0f;
+    float reflectivity = 0.0f;
     bool blend = false;
     bool doubleSided = false;
 };

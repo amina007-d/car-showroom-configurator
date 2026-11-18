@@ -3,16 +3,17 @@
 #include <cmath>
 
 const std::array<PaintPreset, 4> Scene::PAINTS = {{
-    {"Matte black",   {0.015f, 0.015f, 0.017f},   6.0f, 0.08f},
-    {"Glossy red",    {0.55f, 0.02f, 0.02f},    128.0f, 1.00f},
-    {"Pearl white",   {0.80f, 0.80f, 0.78f},     64.0f, 0.70f},
-    {"Midnight blue", {0.02f, 0.05f, 0.20f},     96.0f, 0.90f},
+    {"Matte black",   {0.015f, 0.015f, 0.017f},   6.0f, 0.08f, 0.02f},
+    {"Glossy red",    {0.55f, 0.02f, 0.02f},    128.0f, 1.00f, 0.15f},
+    {"Pearl white",   {0.80f, 0.80f, 0.78f},     64.0f, 0.70f, 0.12f},
+    {"Midnight blue", {0.02f, 0.05f, 0.20f},     96.0f, 0.90f, 0.15f},
 }};
 
 void Scene::applyPaint(const PaintPreset& p) {
     paint->color = p.color;
     paint->shininess = p.shininess;
     paint->specular = p.specular;
+    paint->reflectivity = p.reflectivity;
 }
 
 SceneNode* Scene::addBox(SceneNode* parent, const std::string& name, glm::vec3 pos,
