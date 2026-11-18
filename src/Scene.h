@@ -22,6 +22,16 @@ struct PointLight {
     SceneNode* marker = nullptr;
 };
 
+struct SpotLight {
+    std::string name;
+    glm::vec3 position;
+    glm::vec3 direction;
+    glm::vec3 color;
+    float intensity;
+    float innerDeg;
+    float outerDeg;
+};
+
 struct PaintPreset {
     const char* name;
     glm::vec3 color;
@@ -33,6 +43,7 @@ struct PaintPreset {
 class Scene {
 public:
     static constexpr int MAX_LIGHTS = 4;
+    static constexpr int MAX_SPOTS = 4;
 
     void build();
     void update(float dt);
@@ -45,6 +56,8 @@ public:
     float wheelSpin = 0.0f;
     float ambient = 0.08f;
     std::vector<PointLight> lights;
+    std::vector<SpotLight> spots;
+    bool spotlightsOn = true;
 
     int environment = 0;
     void applyEnvironment(int index);
@@ -75,5 +88,6 @@ private:
     void buildCar(SceneNode* parent);
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();
+    void buildSpotlights();
     void buildEnvironmentMaps();
 };

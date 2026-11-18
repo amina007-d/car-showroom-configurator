@@ -40,6 +40,7 @@ void Scene::build() {
     buildEnvironmentMaps();
     buildStudio();
     buildLights();
+    buildSpotlights();
 }
 
 SceneNode* Scene::addQuad(SceneNode* parent, const std::string& name, glm::vec3 pos,
@@ -197,6 +198,34 @@ void Scene::buildLights() {
     applyEnvironment(0);
 }
 
+void Scene::buildSpotlights() {
+    const glm::vec3 target{0.0f, 0.8f, 0.0f};
+    const float height = 6.8f, radius = 2.6f;
+    Material housing{{0.03f, 0.03f, 0.035f}, 32.0f, 0.4f};
+    Material lens{{0.1f, 0.1f, 0.1f}, 8.0f, 0.0f, {1.0f, 0.96f, 0.88f}};
+
+    for (int i = 0; i < 3; ++i) {
+        float a = glm::radians(90.0f + 120.0f * i);
+        glm::vec3 pos{radius * std::cos(a), height, radius * std::sin(a)};
+        spots.push_back({"Spotlight " + std::to_string(i + 1), pos, glm::normalize(target - pos),
+                         {1.0f, 0.96f, 0.88f}, 2.5f, 14.0f, 22.0f});
+
+        auto body = std::make_unique<SceneNode>("spotlight housing");
+        body->mesh = cylinder_.get();
+        body->position = pos + glm::vec3(0.0f, 0.1f, 0.0f);
+        body->scale = {0.4f, 0.25f, 0.4f};
+        body->material = housing;
+        walls_.push_back(root_->addChild(std::move(body)));
+
+        auto glow = std::make_unique<SceneNode>("spotlight lens");
+        glow->mesh = cylinder_.get();
+        glow->position = pos - glm::vec3(0.0f, 0.03f, 0.0f);
+        glow->scale = {0.3f, 0.02f, 0.3f};
+        glow->material = lens;
+        walls_.push_back(root_->addChild(std::move(glow)));
+    }
+}
+
 void Scene::buildEnvironmentMaps() {
     for (const Environment& env : ENVIRONMENTS) {
         std::unique_ptr<Cubemap> map;
@@ -244,6 +273,16 @@ void Scene::uploadLights(const Shader& shader) const {
         shader.setVec3(b + "position", lights[i].position);
         shader.setVec3(b + "color", lights[i].color);
         shader.setFloat(b + "intensity", lights[i].enabled ? lights[i].intensity : 0.0f);
+    }
+    shader.setInt("uNumSpots", static_cast<int>(spots.size()));
+    for (size_t i = 0; i < spots.size() && i < MAX_SPOTS; ++i) {
+        std::string b = "uSpots[" + std::to_string(i) + "].";
+        shader.setVec3(b + "position", spots[i].position);
+        shader.setVec3(b + "direction", spots[i].direction);
+        shader.setVec3(b + "color", spots[i].color);
+        shader.setFloat(b + "intensity", spotlightsOn ? spots[i].intensity : 0.0f);
+        shader.setFloat(b + "cosInner", std::cos(glm::radians(spots[i].innerDeg)));
+        shader.setFloat(b + "cosOuter", std::cos(glm::radians(spots[i].outerDeg)));
     }
 }
 
