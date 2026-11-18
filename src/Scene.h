@@ -55,7 +55,7 @@ public:
     void applyPaint(const PaintPreset& p);
 
 private:
-    std::unique_ptr<Mesh> cube_, plane_, cylinder_, sphere_;
+    std::unique_ptr<Mesh> cube_, plane_, quad_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<SceneNode> root_;
     std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
@@ -68,7 +68,10 @@ private:
 
     SceneNode* addBox(SceneNode* parent, const std::string& name, glm::vec3 pos,
                       glm::vec3 size, const Material& mat);
+    SceneNode* addQuad(SceneNode* parent, const std::string& name, glm::vec3 pos,
+                       glm::vec3 rotation, glm::vec2 size, const Material& mat);
     void buildStudio();
+    void buildRoom();
     void buildCar(SceneNode* parent);
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();

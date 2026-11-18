@@ -29,11 +29,12 @@ SceneNode* Scene::addBox(SceneNode* parent, const std::string& name, glm::vec3 p
 void Scene::build() {
     cube_ = Mesh::cube();
     plane_ = Mesh::plane(40.0f, 20.0f);
+    quad_ = Mesh::plane(1.0f, 1.0f);
     cylinder_ = Mesh::cylinder(48);
     sphere_ = Mesh::sphere(16, 24);
 
     floorTex_ = Texture::fromFile("assets/textures/floor.png");
-    if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.10f, 0.10f, 0.11f}, {0.07f, 0.07f, 0.08f});
+    if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.030f, 0.030f, 0.034f}, {0.020f, 0.020f, 0.024f});
 
     root_ = std::make_unique<SceneNode>("root");
     buildEnvironmentMaps();
@@ -41,15 +42,46 @@ void Scene::build() {
     buildLights();
 }
 
+SceneNode* Scene::addQuad(SceneNode* parent, const std::string& name, glm::vec3 pos,
+                          glm::vec3 rotation, glm::vec2 size, const Material& mat) {
+    auto node = std::make_unique<SceneNode>(name);
+    node->mesh = quad_.get();
+    node->position = pos;
+    node->rotation = rotation;
+    node->scale = {size.x, 1.0f, size.y};
+    node->material = mat;
+    return parent->addChild(std::move(node));
+}
+
+void Scene::buildRoom() {
+    const float half = 12.0f, height = 7.0f;
+
+    Material wall{{0.020f, 0.020f, 0.023f}, 8.0f, 0.05f};
+    Material backWall{{0.028f, 0.027f, 0.030f}, 8.0f, 0.05f};
+    Material ceiling{{0.012f, 0.012f, 0.014f}, 4.0f, 0.0f};
+
+    walls_.push_back(addQuad(root_.get(), "back wall",  {0.0f, height / 2, -half}, {90.0f, 0.0f, 0.0f},  {2 * half, height}, backWall));
+    walls_.push_back(addQuad(root_.get(), "front wall", {0.0f, height / 2,  half}, {-90.0f, 0.0f, 0.0f}, {2 * half, height}, wall));
+    walls_.push_back(addQuad(root_.get(), "left wall",  {-half, height / 2, 0.0f}, {0.0f, 0.0f, -90.0f}, {height, 2 * half}, wall));
+    walls_.push_back(addQuad(root_.get(), "right wall", { half, height / 2, 0.0f}, {0.0f, 0.0f, 90.0f},  {height, 2 * half}, wall));
+    walls_.push_back(addQuad(root_.get(), "ceiling",    {0.0f, height, 0.0f},      {180.0f, 0.0f, 0.0f}, {2 * half, 2 * half}, ceiling));
+
+    Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
+    for (int row = -1; row <= 1; row += 2)
+        for (int col = -1; col <= 1; ++col)
+            walls_.push_back(addQuad(root_.get(), "ceiling panel", {col * 5.0f, height - 0.02f, row * 3.0f},
+                                     {180.0f, 0.0f, 0.0f}, {3.2f, 1.1f}, panel));
+}
+
 void Scene::buildStudio() {
     auto floor = std::make_unique<SceneNode>("floor");
     floor->mesh = plane_.get();
-    floor->material = {{1.0f, 1.0f, 1.0f}, 32.0f, 0.25f, {0, 0, 0}, floorTex_.get()};
+    floor->material.texture = floorTex_.get();
+    floor->material.shininess = 96.0f;
+    floor->material.specular = 0.6f;
     root_->addChild(std::move(floor));
 
-    Material wall{{0.06f, 0.06f, 0.07f}, 8.0f, 0.05f};
-    walls_.push_back(addBox(root_.get(), "back wall", {0.0f, 4.0f, -9.0f}, {40.0f, 8.0f, 0.2f}, wall));
-    walls_.push_back(addBox(root_.get(), "left wall", {-9.0f, 4.0f, 0.0f}, {0.2f, 8.0f, 40.0f}, wall));
+    buildRoom();
 
     auto base = std::make_unique<SceneNode>("turntable base");
     base->mesh = cylinder_.get();
