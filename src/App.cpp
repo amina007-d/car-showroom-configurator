@@ -112,6 +112,7 @@ void App::drawUI() {
         ImGui::ColorEdit3("Colour", &p.color.x);
         ImGui::SliderFloat("Shininess", &p.shininess, 1.0f, 256.0f, "%.0f", ImGuiSliderFlags_Logarithmic);
         ImGui::SliderFloat("Specular", &p.specular, 0.0f, 1.0f);
+        ImGui::SliderFloat("Reflection", &p.reflectivity, 0.0f, 0.5f);
         if (ImGui::Button("Matte")) { p.shininess = 6.0f; p.specular = 0.08f; p.reflectivity = 0.02f; }
         ImGui::SameLine();
         if (ImGui::Button("Glossy")) { p.shininess = 128.0f; p.specular = 1.0f; p.reflectivity = 0.15f; }

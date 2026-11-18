@@ -83,9 +83,12 @@ void main() {
         vec3 radiance = uSpots[i].color * uSpots[i].intensity * attenuation(d) * cone;
         color += blinnPhong(N, V, L, albedo, radiance);
     }
-    vec3 R = reflect(-V, N);
-    vec3 reflection = texture(uEnvMap, R).rgb;
-    color = mix(color, reflection, uMaterial.reflectivity);
+    if (uMaterial.reflectivity > 0.0) {
+        float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
+        float k = mix(uMaterial.reflectivity, min(1.0, uMaterial.reflectivity * 5.0), fresnel);
+        vec3 reflection = texture(uEnvMap, reflect(-V, N)).rgb;
+        color = mix(color, reflection, k);
+    }
 
     color += uMaterial.emissive;
 

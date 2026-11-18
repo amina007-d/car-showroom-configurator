@@ -80,6 +80,7 @@ void Scene::buildStudio() {
     floor->material.texture = floorTex_.get();
     floor->material.shininess = 96.0f;
     floor->material.specular = 0.6f;
+    floor->material.reflectivity = 0.08f;
     root_->addChild(std::move(floor));
 
     buildRoom();
