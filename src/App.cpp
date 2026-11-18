@@ -11,8 +11,6 @@ App::App(int width, int height) : width_(width), height_(height) {
     shader_ = std::make_unique<Shader>("shaders/phong.vert", "shaders/phong.frag");
     scene_.build();
     skybox_ = std::make_unique<Skybox>();
-    const Environment& studio = ENVIRONMENTS[0];
-    sky_ = Cubemap::gradient(64, studio.skyTop, studio.skyHorizon, studio.skyBottom);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -72,7 +70,7 @@ void App::render() {
     scene_.uploadLights(*shader_);
 
     scene_.draw(*shader_, false);
-    skybox_->draw(*sky_, camera_.view(), camera_.projection(static_cast<float>(width_) / std::max(height_, 1)));
+    skybox_->draw(scene_.environmentMap(), camera_.view(), camera_.projection(static_cast<float>(width_) / std::max(height_, 1)));
     shader_->use();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -91,6 +89,13 @@ void App::drawUI() {
     ImGui::SetNextWindowSize(ImVec2(330, 0), ImGuiCond_FirstUseEver);
     ImGui::Begin("Configurator");
     ImGui::Text("FPS: %.1f", fps_);
+
+    if (ImGui::CollapsingHeader("Environment", ImGuiTreeNodeFlags_DefaultOpen)) {
+        for (int i = 0; i < static_cast<int>(ENVIRONMENTS.size()); ++i) {
+            if (i > 0) ImGui::SameLine();
+            if (ImGui::RadioButton(ENVIRONMENTS[i].name.c_str(), scene_.environment == i)) scene_.applyEnvironment(i);
+        }
+    }
 
     if (ImGui::CollapsingHeader("Paint", ImGuiTreeNodeFlags_DefaultOpen)) {
         for (int i = 0; i < static_cast<int>(Scene::PAINTS.size()); ++i) {
@@ -143,6 +148,7 @@ void App::drawUI() {
             "[ / ]          turntable speed\n"
             "1 2 3          toggle lights\n"
             "0              all lights on / off\n"
+            "N              next environment\n"
             "L              key light orbit on/off\n"
             "V              spin wheels\n"
             "H              hide / show this panel\n"
@@ -181,6 +187,7 @@ void App::keyDown(unsigned char key) {
             else                     { p.shininess = 128.0f; p.specular = 1.0f; }
             break;
         case '0': toggleAllLights(); break;
+        case 'n': scene_.applyEnvironment(scene_.environment + 1); break;
         case '1': case '2': case '3': {
             size_t i = key - '1';
             if (i < scene_.lights.size()) scene_.lights[i].enabled = !scene_.lights[i].enabled;

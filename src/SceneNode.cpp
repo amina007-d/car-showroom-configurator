@@ -14,15 +14,15 @@ glm::mat4 SceneNode::localMatrix() const {
     m = glm::rotate(m, glm::radians(rotation.y), glm::vec3(0, 1, 0));
     m = glm::rotate(m, glm::radians(rotation.x), glm::vec3(1, 0, 0));
     m = glm::scale(m, scale);
-    return m;   // = T * Rz * Ry * Rx * S
+    return m;
 }
 
 void SceneNode::draw(const Shader& shader, const glm::mat4& parentWorld, bool transparentPass) const {
+    if (!visible) return;
     glm::mat4 world = parentWorld * localMatrix();
 
     if (mesh && material.blend == transparentPass) {
         shader.setMat4("uModel", world);
-        // Normal matrix keeps normals perpendicular under non-uniform scaling.
         shader.setMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(world))));
         shader.setVec3("uMaterial.color", material.color);
         shader.setFloat("uMaterial.shininess", material.shininess);

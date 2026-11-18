@@ -35,6 +35,7 @@ void Scene::build() {
     if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.10f, 0.10f, 0.11f}, {0.07f, 0.07f, 0.08f});
 
     root_ = std::make_unique<SceneNode>("root");
+    buildEnvironmentMaps();
     buildStudio();
     buildLights();
 }
@@ -46,8 +47,8 @@ void Scene::buildStudio() {
     root_->addChild(std::move(floor));
 
     Material wall{{0.06f, 0.06f, 0.07f}, 8.0f, 0.05f};
-    addBox(root_.get(), "back wall", {0.0f, 4.0f, -9.0f}, {40.0f, 8.0f, 0.2f}, wall);
-    addBox(root_.get(), "left wall", {-9.0f, 4.0f, 0.0f}, {0.2f, 8.0f, 40.0f}, wall);
+    walls_.push_back(addBox(root_.get(), "back wall", {0.0f, 4.0f, -9.0f}, {40.0f, 8.0f, 0.2f}, wall));
+    walls_.push_back(addBox(root_.get(), "left wall", {-9.0f, 4.0f, 0.0f}, {0.2f, 8.0f, 40.0f}, wall));
 
     auto base = std::make_unique<SceneNode>("turntable base");
     base->mesh = cylinder_.get();
@@ -163,11 +164,21 @@ void Scene::buildLights() {
     applyEnvironment(0);
 }
 
+void Scene::buildEnvironmentMaps() {
+    for (const Environment& env : ENVIRONMENTS) {
+        std::unique_ptr<Cubemap> map;
+        if (!env.skyboxFolder.empty()) map = Cubemap::fromFolder(env.skyboxFolder);
+        if (!map) map = Cubemap::gradient(64, env.skyTop, env.skyHorizon, env.skyBottom);
+        environmentMaps_.push_back(std::move(map));
+    }
+}
+
 void Scene::applyEnvironment(int index) {
     int count = static_cast<int>(ENVIRONMENTS.size());
     environment = (index % count + count) % count;
     const Environment& env = ENVIRONMENTS[environment];
     ambient = env.ambient;
+    for (SceneNode* w : walls_) w->visible = env.walls;
     for (size_t i = 0; i < lights.size() && i < env.lights.size(); ++i) {
         lights[i].color = env.lights[i].color;
         lights[i].intensity = env.lights[i].intensity;

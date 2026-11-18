@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cubemap.h"
 #include "Environment.h"
 #include "Mesh.h"
 #include "Model.h"
@@ -46,6 +47,7 @@ public:
 
     int environment = 0;
     void applyEnvironment(int index);
+    const Cubemap& environmentMap() const { return *environmentMaps_[environment]; }
 
     Material* paint = nullptr;
     static const std::array<PaintPreset, 4> PAINTS;
@@ -55,6 +57,8 @@ private:
     std::unique_ptr<Mesh> cube_, plane_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<SceneNode> root_;
+    std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
+    std::vector<SceneNode*> walls_;
     std::unique_ptr<Model> carModel_;
 
     SceneNode* turntable_ = nullptr;
@@ -67,4 +71,5 @@ private:
     void buildCar(SceneNode* parent);
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();
+    void buildEnvironmentMaps();
 };
