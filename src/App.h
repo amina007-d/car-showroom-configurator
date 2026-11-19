@@ -33,6 +33,8 @@ private:
     float fpsTimer_ = 0.0f;
     int fpsFrames_ = 0;
     float fps_ = 0.0f;
+    float frameMs_ = 0.0f;
+    bool msaa_ = true;
 
     bool keys_[256] = {};
     bool arrows_[4] = {};

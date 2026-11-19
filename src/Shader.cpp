@@ -53,7 +53,11 @@ Shader::~Shader() {
 }
 
 GLint Shader::location(const std::string& name) const {
-    return glGetUniformLocation(id_, name.c_str());
+    auto it = locations_.find(name);
+    if (it != locations_.end()) return it->second;
+    GLint loc = glGetUniformLocation(id_, name.c_str());
+    locations_[name] = loc;
+    return loc;
 }
 
 void Shader::setBool (const std::string& n, bool v) const { glUniform1i(location(n), v ? 1 : 0); }

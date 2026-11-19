@@ -49,10 +49,11 @@ void App::updateFps(float dt) {
     ++fpsFrames_;
     if (fpsTimer_ >= 0.5f) {
         fps_ = fpsFrames_ / fpsTimer_;
+        frameMs_ = 1000.0f / std::max(fps_, 0.001f);
         fpsTimer_ = 0.0f;
         fpsFrames_ = 0;
         char title[96];
-        std::snprintf(title, sizeof(title), "Car Showroom Configurator | FPS: %.1f", fps_);
+        std::snprintf(title, sizeof(title), "Car Showroom Configurator | FPS: %.1f | %.1f ms", fps_, frameMs_);
         glutSetWindowTitle(title);
     }
 }
@@ -90,7 +91,11 @@ void App::drawUI() {
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(330, 0), ImGuiCond_FirstUseEver);
     ImGui::Begin("Configurator");
-    ImGui::Text("FPS: %.1f", fps_);
+    ImGui::Text("FPS: %.1f (%.1f ms per frame)", fps_, frameMs_);
+    if (ImGui::Checkbox("Anti-aliasing (MSAA)", &msaa_)) {
+        if (msaa_) glEnable(GL_MULTISAMPLE);
+        else glDisable(GL_MULTISAMPLE);
+    }
 
     if (ImGui::CollapsingHeader("Environment", ImGuiTreeNodeFlags_DefaultOpen)) {
         for (int i = 0; i < static_cast<int>(ENVIRONMENTS.size()); ++i) {
@@ -165,6 +170,7 @@ void App::drawUI() {
             "N              next environment\n"
             "L              key light orbit on/off\n"
             "V              spin wheels\n"
+            "F              anti-aliasing on / off\n"
             "H              hide / show this panel\n"
             "Esc            quit");
     }
@@ -202,6 +208,11 @@ void App::keyDown(unsigned char key) {
             break;
         case '0': toggleAllLights(); break;
         case 'c': scene_.selectCar(scene_.selectedCar + 1); break;
+        case 'f':
+            msaa_ = !msaa_;
+            if (msaa_) glEnable(GL_MULTISAMPLE);
+            else glDisable(GL_MULTISAMPLE);
+            break;
         case '4': scene_.spotlightsOn = !scene_.spotlightsOn; break;
         case 'n': scene_.applyEnvironment(scene_.environment + 1); break;
         case '1': case '2': case '3': {
