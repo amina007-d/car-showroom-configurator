@@ -29,7 +29,8 @@ SceneNode* Scene::addBox(SceneNode* parent, const std::string& name, glm::vec3 p
 
 void Scene::build() {
     cube_ = Mesh::cube();
-    plane_ = Mesh::plane(40.0f, 20.0f);
+    plane_ = Mesh::plane(24.0f, 12.0f);
+    ground_ = Mesh::plane(400.0f, 1.0f);
     quad_ = Mesh::plane(1.0f, 1.0f);
     cylinder_ = Mesh::cylinder(48);
     sphere_ = Mesh::sphere(16, 24);
@@ -62,17 +63,55 @@ void Scene::buildRoom() {
     Material backWall{{0.028f, 0.027f, 0.030f}, 8.0f, 0.05f};
     Material ceiling{{0.012f, 0.012f, 0.014f}, 4.0f, 0.0f};
 
-    walls_.push_back(addQuad(root_.get(), "back wall",  {0.0f, height / 2, -half}, {90.0f, 0.0f, 0.0f},  {2 * half, height}, backWall));
-    walls_.push_back(addQuad(root_.get(), "front wall", {0.0f, height / 2,  half}, {-90.0f, 0.0f, 0.0f}, {2 * half, height}, wall));
-    walls_.push_back(addQuad(root_.get(), "left wall",  {-half, height / 2, 0.0f}, {0.0f, 0.0f, -90.0f}, {height, 2 * half}, wall));
-    walls_.push_back(addQuad(root_.get(), "right wall", { half, height / 2, 0.0f}, {0.0f, 0.0f, 90.0f},  {height, 2 * half}, wall));
-    walls_.push_back(addQuad(root_.get(), "ceiling",    {0.0f, height, 0.0f},      {180.0f, 0.0f, 0.0f}, {2 * half, 2 * half}, ceiling));
+    closedOnly_.push_back(addQuad(root_.get(), "back wall", {0.0f, height / 2, -half}, {90.0f, 0.0f, 0.0f}, {2 * half, height}, backWall));
+    addQuad(root_.get(), "front wall", {0.0f, height / 2,  half}, {-90.0f, 0.0f, 0.0f}, {2 * half, height}, wall);
+    addQuad(root_.get(), "left wall",  {-half, height / 2, 0.0f}, {0.0f, 0.0f, -90.0f}, {height, 2 * half}, wall);
+    addQuad(root_.get(), "right wall", { half, height / 2, 0.0f}, {0.0f, 0.0f, 90.0f},  {height, 2 * half}, wall);
+    addQuad(root_.get(), "ceiling",    {0.0f, height, 0.0f},      {180.0f, 0.0f, 0.0f}, {2 * half, 2 * half}, ceiling);
+
+    buildWindowWall(half, height);
+    buildColumns(half, height);
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
         for (int col = -1; col <= 1; ++col)
-            walls_.push_back(addQuad(root_.get(), "ceiling panel", {col * 5.0f, height - 0.02f, row * 3.0f},
-                                     {180.0f, 0.0f, 0.0f}, {3.2f, 1.1f}, panel));
+            addQuad(root_.get(), "ceiling panel", {col * 5.0f, height - 0.02f, row * 3.0f},
+                    {180.0f, 0.0f, 0.0f}, {3.2f, 1.1f}, panel);
+}
+
+void Scene::buildWindowWall(float half, float height) {
+    Material glass;
+    glass.color = {0.55f, 0.65f, 0.70f};
+    glass.shininess = 128.0f;
+    glass.specular = 1.0f;
+    glass.alpha = 0.12f;
+    glass.blend = true;
+    glass.doubleSided = true;
+    glass.reflectivity = 0.15f;
+
+    Material frame{{0.06f, 0.06f, 0.065f}, 64.0f, 0.5f};
+
+    const int panes = 8;
+    const float paneWidth = 2 * half / panes;
+    const float z = -half + 0.02f;
+    for (int i = 0; i < panes; ++i) {
+        float x = -half + paneWidth * (i + 0.5f);
+        openOnly_.push_back(addQuad(root_.get(), "window glass", {x, height / 2, z}, {90.0f, 0.0f, 0.0f},
+                                    {paneWidth, height}, glass));
+    }
+    for (int i = 0; i <= panes; ++i) {
+        float x = -half + paneWidth * i;
+        openOnly_.push_back(addBox(root_.get(), "window mullion", {x, height / 2, z}, {0.12f, height, 0.16f}, frame));
+    }
+    for (float y : {0.06f, 2.6f, height - 0.06f})
+        openOnly_.push_back(addBox(root_.get(), "window transom", {0.0f, y, z}, {2 * half, 0.1f, 0.16f}, frame));
+}
+
+void Scene::buildColumns(float half, float height) {
+    Material column{{0.045f, 0.045f, 0.05f}, 32.0f, 0.3f};
+    for (float x : {-6.0f, 6.0f})
+        for (float z : {-half + 1.4f, half - 1.4f})
+            addBox(root_.get(), "column", {x, height / 2, z}, {0.8f, height, 0.8f}, column);
 }
 
 void Scene::buildStudio() {
@@ -83,6 +122,14 @@ void Scene::buildStudio() {
     floor->material.specular = 0.6f;
     floor->material.reflectivity = 0.08f;
     root_->addChild(std::move(floor));
+
+    auto ground = std::make_unique<SceneNode>("street");
+    ground->mesh = ground_.get();
+    ground->position = {0.0f, -0.02f, 0.0f};
+    ground->material.color = {0.035f, 0.035f, 0.038f};
+    ground->material.shininess = 8.0f;
+    ground->material.specular = 0.05f;
+    root_->addChild(std::move(ground));
 
     buildRoom();
 
@@ -253,14 +300,14 @@ void Scene::buildSpotlights() {
         body->position = pos + glm::vec3(0.0f, 0.1f, 0.0f);
         body->scale = {0.4f, 0.25f, 0.4f};
         body->material = housing;
-        walls_.push_back(root_->addChild(std::move(body)));
+        root_->addChild(std::move(body));
 
         auto glow = std::make_unique<SceneNode>("spotlight lens");
         glow->mesh = cylinder_.get();
         glow->position = pos - glm::vec3(0.0f, 0.03f, 0.0f);
         glow->scale = {0.3f, 0.02f, 0.3f};
         glow->material = lens;
-        walls_.push_back(root_->addChild(std::move(glow)));
+        root_->addChild(std::move(glow));
     }
 }
 
@@ -278,7 +325,8 @@ void Scene::applyEnvironment(int index) {
     environment = (index % count + count) % count;
     const Environment& env = ENVIRONMENTS[environment];
     ambient = env.ambient;
-    for (SceneNode* w : walls_) w->visible = env.walls;
+    for (SceneNode* n : closedOnly_) n->visible = env.walls;
+    for (SceneNode* n : openOnly_) n->visible = !env.walls;
     for (size_t i = 0; i < lights.size() && i < env.lights.size(); ++i) {
         lights[i].color = env.lights[i].color;
         lights[i].intensity = env.lights[i].intensity;

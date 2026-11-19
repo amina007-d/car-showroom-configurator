@@ -80,11 +80,12 @@ public:
     void selectCar(int index);
 
 private:
-    std::unique_ptr<Mesh> cube_, plane_, quad_, cylinder_, sphere_;
+    std::unique_ptr<Mesh> cube_, plane_, ground_, quad_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<SceneNode> root_;
     std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
-    std::vector<SceneNode*> walls_;
+    std::vector<SceneNode*> closedOnly_;
+    std::vector<SceneNode*> openOnly_;
 
     SceneNode* turntable_ = nullptr;
     std::array<SceneNode*, 4> placeholderWheels_{};
@@ -96,6 +97,8 @@ private:
                        glm::vec3 rotation, glm::vec2 size, const Material& mat);
     void buildStudio();
     void buildRoom();
+    void buildWindowWall(float half, float height);
+    void buildColumns(float half, float height);
     void buildCars(SceneNode* turntable);
     bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset);
     void buildPlaceholderCar(SceneNode* parent);
