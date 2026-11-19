@@ -32,6 +32,14 @@ struct SpotLight {
     float outerDeg;
 };
 
+struct Car {
+    std::string name;
+    std::unique_ptr<Model> model;
+    SceneNode* root = nullptr;
+    Material* paint = nullptr;
+    std::array<SceneNode*, 4> wheels{};
+};
+
 struct PaintPreset {
     const char* name;
     glm::vec3 color;
@@ -67,16 +75,19 @@ public:
     static const std::array<PaintPreset, 4> PAINTS;
     void applyPaint(const PaintPreset& p);
 
+    std::vector<Car> cars;
+    int selectedCar = 0;
+    void selectCar(int index);
+
 private:
     std::unique_ptr<Mesh> cube_, plane_, quad_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<SceneNode> root_;
     std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
     std::vector<SceneNode*> walls_;
-    std::unique_ptr<Model> carModel_;
 
     SceneNode* turntable_ = nullptr;
-    std::array<SceneNode*, 4> wheels_{};
+    std::array<SceneNode*, 4> placeholderWheels_{};
     float keyLightAngle_ = 0.0f;
 
     SceneNode* addBox(SceneNode* parent, const std::string& name, glm::vec3 pos,
@@ -85,7 +96,8 @@ private:
                        glm::vec3 rotation, glm::vec2 size, const Material& mat);
     void buildStudio();
     void buildRoom();
-    void buildCar(SceneNode* parent);
+    void buildCars(SceneNode* turntable);
+    bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset);
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();
     void buildSpotlights();

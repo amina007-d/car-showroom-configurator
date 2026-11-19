@@ -99,6 +99,14 @@ void App::drawUI() {
         }
     }
 
+    if (ImGui::CollapsingHeader("Car", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::BeginCombo("Model", scene_.cars[scene_.selectedCar].name.c_str())) {
+            for (int i = 0; i < static_cast<int>(scene_.cars.size()); ++i)
+                if (ImGui::Selectable(scene_.cars[i].name.c_str(), i == scene_.selectedCar)) scene_.selectCar(i);
+            ImGui::EndCombo();
+        }
+    }
+
     if (ImGui::CollapsingHeader("Paint", ImGuiTreeNodeFlags_DefaultOpen)) {
         for (int i = 0; i < static_cast<int>(Scene::PAINTS.size()); ++i) {
             if (i > 0) ImGui::SameLine();
@@ -146,6 +154,7 @@ void App::drawUI() {
             "WASD / arrows  orbit camera\n"
             "Q / E          zoom in / out\n"
             "R              reset camera\n"
+            "C              next car\n"
             "P              next paint preset\n"
             "M              toggle matte / glossy\n"
             "Space          pause turntable\n"
@@ -192,6 +201,7 @@ void App::keyDown(unsigned char key) {
             else                     { p.shininess = 128.0f; p.specular = 1.0f;  p.reflectivity = 0.15f; }
             break;
         case '0': toggleAllLights(); break;
+        case 'c': scene_.selectCar(scene_.selectedCar + 1); break;
         case '4': scene_.spotlightsOn = !scene_.spotlightsOn; break;
         case 'n': scene_.applyEnvironment(scene_.environment + 1); break;
         case '1': case '2': case '3': {

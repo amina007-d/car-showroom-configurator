@@ -10,6 +10,7 @@ const std::array<PaintPreset, 4> Scene::PAINTS = {{
 }};
 
 void Scene::applyPaint(const PaintPreset& p) {
+    if (!paint) return;
     paint->color = p.color;
     paint->shininess = p.shininess;
     paint->specular = p.specular;
@@ -113,34 +114,70 @@ void Scene::buildStudio() {
         root_->addChild(std::move(lamp));
     }
 
-    auto car = std::make_unique<SceneNode>("car");
-    car->position = {0.0f, 0.1f, 0.0f};
-    buildCar(turntable_->addChild(std::move(car)));
+    buildCars(turntable_);
 }
 
-void Scene::buildCar(SceneNode* car) {
-    carModel_ = Model::load("assets/models/porsche930/car.obj");
-    if (!carModel_) {
-        buildPlaceholderCar(car);
-        return;
+void Scene::buildCars(SceneNode* turntable) {
+    addCar(turntable, "Porsche 911 Turbo (1975)",       "assets/models/porsche930/car.obj", 1);
+    addCar(turntable, "Toyota Supra (1993)",            "assets/models/supra93/car.obj",    2);
+    addCar(turntable, "Nissan Skyline GT-R R34 (1999)", "assets/models/r34/car.obj",        3);
+    addCar(turntable, "Lamborghini Aventador",          "assets/models/aventador/car.obj",  0);
+
+    if (cars.empty()) {
+        Car c;
+        c.name = "Placeholder";
+        auto node = std::make_unique<SceneNode>("car");
+        node->position = {0.0f, 0.1f, 0.0f};
+        c.root = turntable->addChild(std::move(node));
+        buildPlaceholderCar(c.root);
+        c.paint = paint;
+        c.wheels = placeholderWheels_;
+        cars.push_back(std::move(c));
     }
+    selectCar(0);
+}
+
+bool Scene::addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset) {
+    Car c;
+    c.name = name;
+    c.model = Model::load(objPath);
+    if (!c.model) return false;
+
+    auto node = std::make_unique<SceneNode>(name);
+    node->position = {0.0f, 0.1f, 0.0f};
+    c.root = turntable->addChild(std::move(node));
+
     int wheelCount = 0;
-    for (const ModelObject& obj : carModel_->objects) {
+    for (const ModelObject& obj : c.model->objects) {
         auto group = std::make_unique<SceneNode>(obj.name);
         group->position = obj.pivot;
-        SceneNode* g = car->addChild(std::move(group));
-        if (obj.name.rfind("wheel", 0) == 0 && wheelCount < 4) wheels_[wheelCount++] = g;
+        SceneNode* g = c.root->addChild(std::move(group));
+        if (obj.name.rfind("wheel", 0) == 0 && wheelCount < 4) c.wheels[wheelCount++] = g;
 
         for (const ModelPart& part : obj.parts) {
-            auto node = std::make_unique<SceneNode>(obj.name + "/" + part.materialName);
-            node->mesh = part.mesh.get();
-            node->material = part.material;
-            SceneNode* n = g->addChild(std::move(node));
-            if (part.materialName == "paint") paint = &n->material;
+            auto n = std::make_unique<SceneNode>(obj.name + "/" + part.materialName);
+            n->mesh = part.mesh.get();
+            n->material = part.material;
+            SceneNode* added = g->addChild(std::move(n));
+            if (part.materialName == "paint") c.paint = &added->material;
         }
     }
-    if (paint) applyPaint(PAINTS[1]);
-    else buildPlaceholderCar(car);
+    if (!c.paint) {
+        c.root->visible = false;
+        return false;
+    }
+    paint = c.paint;
+    applyPaint(PAINTS[paintPreset]);
+    cars.push_back(std::move(c));
+    return true;
+}
+
+void Scene::selectCar(int index) {
+    if (cars.empty()) return;
+    int count = static_cast<int>(cars.size());
+    selectedCar = (index % count + count) % count;
+    for (int i = 0; i < count; ++i) cars[i].root->visible = (i == selectedCar);
+    paint = cars[selectedCar].paint;
 }
 
 void Scene::buildPlaceholderCar(SceneNode* car) {
@@ -166,7 +203,7 @@ void Scene::buildPlaceholderCar(SceneNode* car) {
         wheel->position = wheelPos[i];
         wheel->rotation = {90.0f, 0.0f, 0.0f};
         SceneNode* w = car->addChild(std::move(wheel));
-        wheels_[i] = w;
+        placeholderWheels_[i] = w;
 
         auto t = std::make_unique<SceneNode>("tyre");
         t->mesh = cylinder_.get();
@@ -252,7 +289,7 @@ void Scene::update(float dt) {
     SceneNode* tt = turntable_;
     if (!turntablePaused) tt->rotation.y += turntableSpeed * dt;
 
-    for (SceneNode* w : wheels_)
+    for (SceneNode* w : cars[selectedCar].wheels)
         if (w) w->rotation.z -= wheelSpin * dt;
 
     if (keyLightOrbits) keyLightAngle_ += 25.0f * dt;
