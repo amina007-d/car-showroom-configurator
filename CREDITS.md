@@ -25,7 +25,7 @@
 | 1993 Toyota Supra — converted to OBJ, interior removed, textures downscaled | ShaheerHashmi | https://sketchfab.com/3d-models/1993-toyota-supra-0c810d1e1fc74f14b9254bba09539f7b | CC BY 4.0 |
 | Nissan R34 Brians Fast Furious — converted to OBJ, interior and engine removed | vecarz | https://sketchfab.com/3d-models/nissan-r34-brians-fast-furious-wwwvecarzcom-412aa249c2f548eebf64bdb35f3553af | CC BY 4.0 |
 | Lamborghini Aventador — converted to OBJ, interior and engine removed | Outlaw Games™ | https://sketchfab.com/3d-models/lamborghini-aventador-e328d9f5dcfd48bdbe8c73324b52ece3 | CC BY-NC 4.0 (non-commercial) |
-
+| City skyboxes (day, night) — generated procedurally by tools/make_city_skybox.py | Team (own work) | — | — |
 Licenses: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/ ; CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/
 
 Credit line requested by Lionsharp Studios: *This work is based on "FREE 1975 Porsche 911 (930) Turbo" by Lionsharp Studios,
