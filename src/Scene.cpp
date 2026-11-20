@@ -36,7 +36,7 @@ void Scene::build() {
     sphere_ = Mesh::sphere(16, 24);
 
     floorTex_ = Texture::fromFile("assets/textures/floor.png");
-    if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.030f, 0.030f, 0.034f}, {0.020f, 0.020f, 0.024f});
+    if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.62f, 0.62f, 0.60f}, {0.54f, 0.54f, 0.52f});
 
     root_ = std::make_unique<SceneNode>("root");
     buildEnvironmentMaps();
@@ -63,11 +63,13 @@ void Scene::buildRoom() {
     Material backWall{{0.028f, 0.027f, 0.030f}, 8.0f, 0.05f};
     Material ceiling{{0.012f, 0.012f, 0.014f}, 4.0f, 0.0f};
 
-    closedOnly_.push_back(addQuad(root_.get(), "back wall", {0.0f, height / 2, -half}, {90.0f, 0.0f, 0.0f}, {2 * half, height}, backWall));
-    addQuad(root_.get(), "front wall", {0.0f, height / 2,  half}, {-90.0f, 0.0f, 0.0f}, {2 * half, height}, wall);
-    addQuad(root_.get(), "left wall",  {-half, height / 2, 0.0f}, {0.0f, 0.0f, -90.0f}, {height, 2 * half}, wall);
-    addQuad(root_.get(), "right wall", { half, height / 2, 0.0f}, {0.0f, 0.0f, 90.0f},  {height, 2 * half}, wall);
-    addQuad(root_.get(), "ceiling",    {0.0f, height, 0.0f},      {180.0f, 0.0f, 0.0f}, {2 * half, 2 * half}, ceiling);
+    SceneNode* back = addQuad(root_.get(), "back wall", {0.0f, height / 2, -half}, {90.0f, 0.0f, 0.0f}, {2 * half, height}, backWall);
+    closedOnly_.push_back(back);
+    wallMaterials_.push_back(&back->material);
+    wallMaterials_.push_back(&addQuad(root_.get(), "front wall", {0.0f, height / 2,  half}, {-90.0f, 0.0f, 0.0f}, {2 * half, height}, wall)->material);
+    wallMaterials_.push_back(&addQuad(root_.get(), "left wall",  {-half, height / 2, 0.0f}, {0.0f, 0.0f, -90.0f}, {height, 2 * half}, wall)->material);
+    wallMaterials_.push_back(&addQuad(root_.get(), "right wall", { half, height / 2, 0.0f}, {0.0f, 0.0f, 90.0f},  {height, 2 * half}, wall)->material);
+    ceilingMaterial_ = &addQuad(root_.get(), "ceiling",    {0.0f, height, 0.0f},      {180.0f, 0.0f, 0.0f}, {2 * half, 2 * half}, ceiling)->material;
 
     buildWindowWall(half, height);
     buildColumns(half, height);
@@ -121,7 +123,7 @@ void Scene::buildStudio() {
     floor->material.shininess = 96.0f;
     floor->material.specular = 0.6f;
     floor->material.reflectivity = 0.08f;
-    root_->addChild(std::move(floor));
+    floorMaterial_ = &root_->addChild(std::move(floor))->material;
 
     auto ground = std::make_unique<SceneNode>("street");
     ground->mesh = ground_.get();
@@ -325,6 +327,12 @@ void Scene::applyEnvironment(int index) {
     environment = (index % count + count) % count;
     const Environment& env = ENVIRONMENTS[environment];
     ambient = env.ambient;
+    for (Material* m : wallMaterials_) m->color = env.wallColor;
+    if (ceilingMaterial_) ceilingMaterial_->color = env.ceilingColor;
+    if (floorMaterial_) {
+        floorMaterial_->color = glm::vec3(env.floorTint);
+        floorMaterial_->reflectivity = env.floorReflectivity;
+    }
     for (SceneNode* n : closedOnly_) n->visible = env.walls;
     for (SceneNode* n : openOnly_) n->visible = !env.walls;
     for (size_t i = 0; i < lights.size() && i < env.lights.size(); ++i) {

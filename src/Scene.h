@@ -85,6 +85,9 @@ private:
     std::unique_ptr<SceneNode> root_;
     std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
     std::vector<SceneNode*> closedOnly_;
+    std::vector<Material*> wallMaterials_;
+    Material* ceilingMaterial_ = nullptr;
+    Material* floorMaterial_ = nullptr;
     std::vector<SceneNode*> openOnly_;
 
     SceneNode* turntable_ = nullptr;
