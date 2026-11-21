@@ -77,6 +77,7 @@ void Scene::buildRoom() {
     buildPendantLamps(height);
     buildDecor();
     buildSign(half);
+    buildBarrier();
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
@@ -211,6 +212,40 @@ void Scene::buildSign(float half) {
     addBox(root_.get(), "led strip left",  {-half + 0.05f, 0.08f, 0.0f}, {0.04f, 0.04f, 2 * half}, strip);
     addBox(root_.get(), "led strip right", { half - 0.05f, 0.08f, 0.0f}, {0.04f, 0.04f, 2 * half}, strip);
     addBox(root_.get(), "led strip front", {0.0f, 0.08f,  half - 0.05f}, {2 * half, 0.04f, 0.04f}, strip);
+}
+
+void Scene::buildBarrier() {
+    Material chrome{{0.6f, 0.6f, 0.62f}, 128.0f, 1.0f};
+    chrome.reflectivity = 0.3f;
+    Material rope{{0.35f, 0.02f, 0.04f}, 32.0f, 0.3f};
+
+    const int posts = 10;
+    const float radius = 3.6f, ropeHeight = 0.7f;
+    const float gapAngle = 55.0f;
+    std::vector<glm::vec3> pos;
+    for (int i = 0; i < posts; ++i) {
+        float a = glm::radians(gapAngle + 18.0f + 36.0f * i);
+        glm::vec3 p{radius * std::cos(a), 0.0f, radius * std::sin(a)};
+        pos.push_back(p);
+        addCylinder(root_.get(), "barrier base", p + glm::vec3(0.0f, 0.015f, 0.0f), {0.36f, 0.03f, 0.36f}, chrome);
+        addCylinder(root_.get(), "barrier post", p + glm::vec3(0.0f, 0.4f, 0.0f), {0.07f, 0.8f, 0.07f}, chrome);
+        auto top = std::make_unique<SceneNode>("barrier top");
+        top->mesh = sphere_.get();
+        top->position = p + glm::vec3(0.0f, 0.82f, 0.0f);
+        top->scale = glm::vec3(0.12f);
+        top->material = chrome;
+        root_->addChild(std::move(top));
+    }
+    for (int i = 0; i + 1 < posts; ++i) {
+        glm::vec3 d = pos[i + 1] - pos[i];
+        auto r = std::make_unique<SceneNode>("barrier rope");
+        r->mesh = cube_.get();
+        r->position = (pos[i] + pos[i + 1]) * 0.5f + glm::vec3(0.0f, ropeHeight, 0.0f);
+        r->rotation = {0.0f, glm::degrees(std::atan2(-d.z, d.x)), 0.0f};
+        r->scale = {glm::length(d), 0.045f, 0.045f};
+        r->material = rope;
+        root_->addChild(std::move(r));
+    }
 }
 
 void Scene::buildStudio() {

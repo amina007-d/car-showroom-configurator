@@ -109,6 +109,7 @@ private:
     void buildPendantLamps(float height);
     void buildDecor();
     void buildSign(float half);
+    void buildBarrier();
     SceneNode* addCylinder(SceneNode* parent, const std::string& name, glm::vec3 pos, glm::vec3 size, const Material& mat);
     void buildCars(SceneNode* turntable);
     bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset,
