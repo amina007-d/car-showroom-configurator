@@ -15,7 +15,6 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-    // layout(location = 0) position, 1 normal, 2 uv
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(1);
@@ -38,20 +37,14 @@ void Mesh::draw() const {
     glBindVertexArray(0);
 }
 
-// ---------------------------------------------------------------------------
-// Primitive factories
-// ---------------------------------------------------------------------------
-
 std::unique_ptr<Mesh> Mesh::cube() {
-    // 6 faces x 4 vertices so every face has its own flat normal.
     const glm::vec3 normals[6] = {{0,0,1},{0,0,-1},{1,0,0},{-1,0,0},{0,1,0},{0,-1,0}};
     std::vector<Vertex> v;
     std::vector<unsigned int> idx;
     for (int f = 0; f < 6; ++f) {
         glm::vec3 n = normals[f];
-        // two axes spanning the face
         glm::vec3 u = (std::abs(n.y) > 0.5f) ? glm::vec3(1,0,0) : glm::vec3(0,1,0);
-        glm::vec3 w = glm::cross(u, n);   // chosen so that w x u = n -> CCW winding seen from outside
+        glm::vec3 w = glm::cross(u, n);
         unsigned int base = static_cast<unsigned int>(v.size());
         const float s[4][2] = {{-1,-1},{1,-1},{1,1},{-1,1}};
         for (auto& c : s) {
@@ -66,12 +59,12 @@ std::unique_ptr<Mesh> Mesh::cube() {
 std::unique_ptr<Mesh> Mesh::plane(float size, float uvRepeat) {
     float h = size * 0.5f;
     std::vector<Vertex> v = {
-        {{-h, 0, -h}, {0, 1, 0}, {0, 0}},
-        {{ h, 0, -h}, {0, 1, 0}, {uvRepeat, 0}},
-        {{ h, 0,  h}, {0, 1, 0}, {uvRepeat, uvRepeat}},
-        {{-h, 0,  h}, {0, 1, 0}, {0, uvRepeat}},
+        {{-h, 0, -h}, {0, 1, 0}, {uvRepeat, 0}},
+        {{ h, 0, -h}, {0, 1, 0}, {0, 0}},
+        {{ h, 0,  h}, {0, 1, 0}, {0, uvRepeat}},
+        {{-h, 0,  h}, {0, 1, 0}, {uvRepeat, uvRepeat}},
     };
-    std::vector<unsigned int> idx = {0, 2, 1, 0, 3, 2};   // counter-clockwise seen from +Y
+    std::vector<unsigned int> idx = {0, 2, 1, 0, 3, 2};
     return std::make_unique<Mesh>(v, idx);
 }
 
@@ -81,7 +74,6 @@ std::unique_ptr<Mesh> Mesh::cylinder(int segments) {
     const float r = 0.5f, h = 0.5f;
     const float TWO_PI = 6.28318530718f;
 
-    // Side: duplicated seam vertex so UVs wrap correctly.
     for (int i = 0; i <= segments; ++i) {
         float t = static_cast<float>(i) / segments;
         float a = t * TWO_PI;
@@ -94,7 +86,6 @@ std::unique_ptr<Mesh> Mesh::cylinder(int segments) {
         idx.insert(idx.end(), {b, b + 1, b + 3, b, b + 3, b + 2});
     }
 
-    // Caps (top y = +h, bottom y = -h).
     for (int cap = 0; cap < 2; ++cap) {
         float y = cap == 0 ? h : -h;
         glm::vec3 n(0, cap == 0 ? 1.0f : -1.0f, 0);
@@ -119,7 +110,7 @@ std::unique_ptr<Mesh> Mesh::sphere(int stacks, int slices) {
     std::vector<unsigned int> idx;
     const float PI = 3.14159265359f;
     for (int i = 0; i <= stacks; ++i) {
-        float phi = PI * i / stacks;                 // 0 (top) .. PI (bottom)
+        float phi = PI * i / stacks;
         for (int j = 0; j <= slices; ++j) {
             float theta = 2 * PI * j / slices;
             glm::vec3 n(std::sin(phi) * std::cos(theta), std::cos(phi), std::sin(phi) * std::sin(theta));

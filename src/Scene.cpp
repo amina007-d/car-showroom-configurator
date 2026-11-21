@@ -36,6 +36,7 @@ void Scene::build() {
     sphere_ = Mesh::sphere(16, 24);
 
     floorTex_ = Texture::fromFile("assets/textures/floor.png");
+    signTex_ = Texture::fromFile("assets/textures/sign.png");
     if (!floorTex_) floorTex_ = Texture::checker(256, 2, {0.62f, 0.62f, 0.60f}, {0.54f, 0.54f, 0.52f});
 
     root_ = std::make_unique<SceneNode>("root");
@@ -75,6 +76,7 @@ void Scene::buildRoom() {
     buildColumns(half, height);
     buildPendantLamps(height);
     buildDecor();
+    buildSign(half);
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
@@ -193,6 +195,22 @@ void Scene::buildDecor() {
     Material screen{{0.02f, 0.02f, 0.03f}, 128.0f, 1.0f, {0.15f, 0.35f, 0.6f}};
     addBox(root_.get(), "info counter", {-7.0f, 0.55f, 8.5f}, {2.4f, 1.1f, 0.8f}, counter);
     addBox(root_.get(), "info screen", {-7.0f, 1.45f, 8.4f}, {1.0f, 0.6f, 0.05f}, screen);
+}
+
+void Scene::buildSign(float half) {
+    Material frame{{0.03f, 0.03f, 0.035f}, 64.0f, 0.5f};
+    addBox(root_.get(), "sign frame", {-half + 0.06f, 4.6f, 0.0f}, {0.1f, 2.0f, 7.4f}, frame);
+
+    if (signTex_) {
+        Material sign{{0.0f, 0.0f, 0.0f}, 8.0f, 0.0f, {1.0f, 1.0f, 1.0f}};
+        sign.texture = signTex_.get();
+        addQuad(root_.get(), "sign", {-half + 0.12f, 4.6f, 0.0f}, {0.0f, -90.0f, -90.0f}, {7.0f, 1.75f}, sign);
+    }
+
+    Material strip{{0.05f, 0.05f, 0.05f}, 8.0f, 0.0f, {1.0f, 0.82f, 0.5f}};
+    addBox(root_.get(), "led strip left",  {-half + 0.05f, 0.08f, 0.0f}, {0.04f, 0.04f, 2 * half}, strip);
+    addBox(root_.get(), "led strip right", { half - 0.05f, 0.08f, 0.0f}, {0.04f, 0.04f, 2 * half}, strip);
+    addBox(root_.get(), "led strip front", {0.0f, 0.08f,  half - 0.05f}, {2 * half, 0.04f, 0.04f}, strip);
 }
 
 void Scene::buildStudio() {
