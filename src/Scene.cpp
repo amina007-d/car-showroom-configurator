@@ -73,6 +73,7 @@ void Scene::buildRoom() {
 
     buildWindowWall(half, height);
     buildColumns(half, height);
+    buildPendantLamps(height);
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
@@ -114,6 +115,38 @@ void Scene::buildColumns(float half, float height) {
     for (float x : {-6.0f, 6.0f})
         for (float z : {-half + 1.4f, half - 1.4f})
             addBox(root_.get(), "column", {x, height / 2, z}, {0.8f, height, 0.8f}, column);
+}
+
+void Scene::buildPendantLamps(float height) {
+    Material cord{{0.02f, 0.02f, 0.02f}, 8.0f, 0.1f};
+    Material shade{{0.05f, 0.05f, 0.055f}, 64.0f, 0.7f};
+    Material bulb{{0.1f, 0.1f, 0.1f}, 8.0f, 0.0f, {1.0f, 0.88f, 0.65f}};
+    const float drop = 1.6f;
+
+    for (float x : {-8.5f, -2.5f, 2.5f, 8.5f}) {
+        for (float z : {-7.5f, 7.5f}) {
+            auto c = std::make_unique<SceneNode>("pendant cord");
+            c->mesh = cylinder_.get();
+            c->position = {x, height - drop / 2, z};
+            c->scale = {0.03f, drop, 0.03f};
+            c->material = cord;
+            root_->addChild(std::move(c));
+
+            auto s = std::make_unique<SceneNode>("pendant shade");
+            s->mesh = cylinder_.get();
+            s->position = {x, height - drop - 0.2f, z};
+            s->scale = {0.7f, 0.4f, 0.7f};
+            s->material = shade;
+            root_->addChild(std::move(s));
+
+            auto b = std::make_unique<SceneNode>("pendant bulb");
+            b->mesh = cylinder_.get();
+            b->position = {x, height - drop - 0.41f, z};
+            b->scale = {0.55f, 0.02f, 0.55f};
+            b->material = bulb;
+            root_->addChild(std::move(b));
+        }
+    }
 }
 
 void Scene::buildStudio() {

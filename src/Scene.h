@@ -102,6 +102,7 @@ private:
     void buildRoom();
     void buildWindowWall(float half, float height);
     void buildColumns(float half, float height);
+    void buildPendantLamps(float height);
     void buildCars(SceneNode* turntable);
     bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset);
     void buildPlaceholderCar(SceneNode* parent);
