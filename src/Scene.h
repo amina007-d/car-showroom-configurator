@@ -103,6 +103,8 @@ private:
     void buildWindowWall(float half, float height);
     void buildColumns(float half, float height);
     void buildPendantLamps(float height);
+    void buildDecor();
+    SceneNode* addCylinder(SceneNode* parent, const std::string& name, glm::vec3 pos, glm::vec3 size, const Material& mat);
     void buildCars(SceneNode* turntable);
     bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset);
     void buildPlaceholderCar(SceneNode* parent);

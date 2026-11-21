@@ -74,6 +74,7 @@ void Scene::buildRoom() {
     buildWindowWall(half, height);
     buildColumns(half, height);
     buildPendantLamps(height);
+    buildDecor();
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
@@ -147,6 +148,51 @@ void Scene::buildPendantLamps(float height) {
             root_->addChild(std::move(b));
         }
     }
+}
+
+SceneNode* Scene::addCylinder(SceneNode* parent, const std::string& name, glm::vec3 pos, glm::vec3 size,
+                              const Material& mat) {
+    auto node = std::make_unique<SceneNode>(name);
+    node->mesh = cylinder_.get();
+    node->position = pos;
+    node->scale = size;
+    node->material = mat;
+    return parent->addChild(std::move(node));
+}
+
+void Scene::buildDecor() {
+    Material pot{{0.55f, 0.55f, 0.53f}, 32.0f, 0.3f};
+    Material leaves{{0.06f, 0.20f, 0.07f}, 16.0f, 0.15f};
+    for (glm::vec2 p : {glm::vec2{-10.3f, -10.3f}, glm::vec2{10.3f, -10.3f}, glm::vec2{-10.3f, 10.3f}, glm::vec2{10.3f, 10.3f}}) {
+        addCylinder(root_.get(), "plant pot", {p.x, 0.45f, p.y}, {1.0f, 0.9f, 1.0f}, pot);
+        const glm::vec3 offsets[4] = {{0.0f, 1.5f, 0.0f}, {0.35f, 1.15f, 0.2f}, {-0.3f, 1.2f, -0.25f}, {0.1f, 1.95f, -0.1f}};
+        for (const glm::vec3& o : offsets) {
+            auto leaf = std::make_unique<SceneNode>("plant leaves");
+            leaf->mesh = sphere_.get();
+            leaf->position = glm::vec3(p.x, 0.0f, p.y) + o;
+            leaf->scale = glm::vec3(0.9f, 1.1f, 0.9f);
+            leaf->material = leaves;
+            root_->addChild(std::move(leaf));
+        }
+    }
+
+    Material wood{{0.35f, 0.20f, 0.10f}, 32.0f, 0.3f};
+    Material metal{{0.3f, 0.3f, 0.32f}, 96.0f, 0.8f};
+    Material seat{{0.08f, 0.08f, 0.09f}, 16.0f, 0.2f};
+    const glm::vec3 table{6.5f, 0.0f, 7.0f};
+    addCylinder(root_.get(), "table top", table + glm::vec3(0.0f, 0.75f, 0.0f), {1.2f, 0.05f, 1.2f}, wood);
+    addCylinder(root_.get(), "table leg", table + glm::vec3(0.0f, 0.37f, 0.0f), {0.08f, 0.74f, 0.08f}, metal);
+    addCylinder(root_.get(), "table base", table + glm::vec3(0.0f, 0.02f, 0.0f), {0.6f, 0.04f, 0.6f}, metal);
+    for (float a : {0.0f, 2.1f, 4.2f}) {
+        glm::vec3 s = table + glm::vec3(1.0f * std::cos(a), 0.0f, 1.0f * std::sin(a));
+        addCylinder(root_.get(), "stool seat", s + glm::vec3(0.0f, 0.65f, 0.0f), {0.45f, 0.08f, 0.45f}, seat);
+        addCylinder(root_.get(), "stool leg", s + glm::vec3(0.0f, 0.32f, 0.0f), {0.06f, 0.64f, 0.06f}, metal);
+    }
+
+    Material counter{{0.5f, 0.5f, 0.48f}, 48.0f, 0.4f};
+    Material screen{{0.02f, 0.02f, 0.03f}, 128.0f, 1.0f, {0.15f, 0.35f, 0.6f}};
+    addBox(root_.get(), "info counter", {-7.0f, 0.55f, 8.5f}, {2.4f, 1.1f, 0.8f}, counter);
+    addBox(root_.get(), "info screen", {-7.0f, 1.45f, 8.4f}, {1.0f, 0.6f, 0.05f}, screen);
 }
 
 void Scene::buildStudio() {
