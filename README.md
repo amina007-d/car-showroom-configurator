@@ -99,9 +99,10 @@ The generated files are committed, so building the project does not need Python.
 
 ## Performance
 
-| Machine | GPU | Car | FPS |
-|---|---|---|---|
-| Laptop (Amina Dossan), WSL2 | Intel Iris Xe (D3D12) | Porsche 911 | 80–90 |
+| Tester | CPU | RAM (WSL) | GPU / driver | OS | Scene | FPS |
+|---|---|---|---|---|---|---|
+| Amina Dossan | Intel Core i5-12500H (12th Gen) | 7.1 GiB | Intel Iris Xe — Mesa D3D12 | Windows 11 + WSL2 (Ubuntu) | Porsche, Studio, MSAA on | 58–60 |
+| Yerasyl Ginayat | Intel Core i5-12500H (12th Gen) | 7.6 GiB | Intel Iris Xe — OpenGL 4.1 Core, Mesa 26.0.3 (D3D12) | Windows 11 + WSL2 (Ubuntu) | Porsche, Studio, MSAA on | 58–65 |
 
 ## Team
 
