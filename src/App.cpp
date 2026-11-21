@@ -142,6 +142,8 @@ void App::drawUI() {
         ImGui::Checkbox("Key light orbits", &scene_.keyLightOrbits);
         if (ImGui::Button("All lights on / off")) toggleAllLights();
         ImGui::Checkbox("Spotlights", &scene_.spotlightsOn);
+        ImGui::SameLine();
+        ImGui::Checkbox("Headlights", &scene_.headlightsOn);
         for (size_t i = 0; i < scene_.lights.size(); ++i) {
             PointLight& l = scene_.lights[i];
             ImGui::PushID(static_cast<int>(i));
@@ -167,6 +169,7 @@ void App::drawUI() {
             "1 2 3          toggle lights\n"
             "0              all lights on / off\n"
             "4              spotlights on / off\n"
+            "K              headlights on / off\n"
             "N              next environment\n"
             "L              key light orbit on/off\n"
             "V              spin wheels\n"
@@ -214,6 +217,7 @@ void App::keyDown(unsigned char key) {
             else glDisable(GL_MULTISAMPLE);
             break;
         case '4': scene_.spotlightsOn = !scene_.spotlightsOn; break;
+        case 'k': scene_.headlightsOn = !scene_.headlightsOn; break;
         case 'n': scene_.applyEnvironment(scene_.environment + 1); break;
         case '1': case '2': case '3': {
             size_t i = key - '1';
