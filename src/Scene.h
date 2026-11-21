@@ -30,6 +30,7 @@ struct SpotLight {
     float intensity;
     float innerDeg;
     float outerDeg;
+    bool headlight = false;
 };
 
 struct Car {
@@ -38,6 +39,7 @@ struct Car {
     SceneNode* root = nullptr;
     Material* paint = nullptr;
     std::array<SceneNode*, 4> wheels{};
+    glm::vec3 headlight{1.8f, 0.65f, 0.55f};
 };
 
 struct PaintPreset {
@@ -51,7 +53,7 @@ struct PaintPreset {
 class Scene {
 public:
     static constexpr int MAX_LIGHTS = 4;
-    static constexpr int MAX_SPOTS = 4;
+    static constexpr int MAX_SPOTS = 6;
 
     void build();
     void update(float dt);
@@ -66,6 +68,7 @@ public:
     std::vector<PointLight> lights;
     std::vector<SpotLight> spots;
     bool spotlightsOn = true;
+    bool headlightsOn = false;
 
     int environment = 0;
     void applyEnvironment(int index);
@@ -106,7 +109,9 @@ private:
     void buildDecor();
     SceneNode* addCylinder(SceneNode* parent, const std::string& name, glm::vec3 pos, glm::vec3 size, const Material& mat);
     void buildCars(SceneNode* turntable);
-    bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset);
+    bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset,
+                glm::vec3 headlight);
+    void updateHeadlights();
     void buildPlaceholderCar(SceneNode* parent);
     void buildLights();
     void buildSpotlights();

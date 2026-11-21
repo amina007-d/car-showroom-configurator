@@ -246,10 +246,10 @@ void Scene::buildStudio() {
 }
 
 void Scene::buildCars(SceneNode* turntable) {
-    addCar(turntable, "Porsche 911 Turbo (1975)",       "assets/models/porsche930/car.obj", 1);
-    addCar(turntable, "Toyota Supra (1993)",            "assets/models/supra93/car.obj",    2);
-    addCar(turntable, "Nissan Skyline GT-R R34 (1999)", "assets/models/r34/car.obj",        3);
-    addCar(turntable, "Lamborghini Aventador",          "assets/models/aventador/car.obj",  0);
+    addCar(turntable, "Porsche 911 Turbo (1975)",       "assets/models/porsche930/car.obj", 1, {1.95f, 0.62f, 0.55f});
+    addCar(turntable, "Toyota Supra (1993)",            "assets/models/supra93/car.obj",    2, {2.05f, 0.60f, 0.60f});
+    addCar(turntable, "Nissan Skyline GT-R R34 (1999)", "assets/models/r34/car.obj",        3, {2.10f, 0.62f, 0.60f});
+    addCar(turntable, "Lamborghini Aventador",          "assets/models/aventador/car.obj",  0, {2.20f, 0.50f, 0.70f});
 
     if (cars.empty()) {
         Car c;
@@ -265,9 +265,11 @@ void Scene::buildCars(SceneNode* turntable) {
     selectCar(0);
 }
 
-bool Scene::addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset) {
+bool Scene::addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset,
+                   glm::vec3 headlight) {
     Car c;
     c.name = name;
+    c.headlight = headlight;
     c.model = Model::load(objPath);
     if (!c.model) return false;
 
@@ -390,6 +392,28 @@ void Scene::buildSpotlights() {
         glow->material = lens;
         root_->addChild(std::move(glow));
     }
+
+    for (int side = 0; side < 2; ++side) {
+        SpotLight h{side == 0 ? "Headlight right" : "Headlight left", {}, {1.0f, 0.0f, 0.0f},
+                    {1.0f, 0.97f, 0.90f}, 4.0f, 12.0f, 20.0f};
+        h.headlight = true;
+        spots.push_back(h);
+    }
+}
+
+void Scene::updateHeadlights() {
+    if (cars.empty()) return;
+    const Car& car = cars[selectedCar];
+    glm::mat4 world = turntable_->localMatrix() * car.root->localMatrix();
+    glm::vec3 forward = glm::normalize(glm::vec3(world * glm::vec4(1.0f, -0.3f, 0.0f, 0.0f)));
+    int side = 0;
+    for (SpotLight& s : spots) {
+        if (!s.headlight) continue;
+        glm::vec3 local = car.headlight;
+        if (side++ == 1) local.z = -local.z;
+        s.position = glm::vec3(world * glm::vec4(local, 1.0f));
+        s.direction = forward;
+    }
 }
 
 void Scene::buildEnvironmentMaps() {
@@ -406,6 +430,7 @@ void Scene::applyEnvironment(int index) {
     environment = (index % count + count) % count;
     const Environment& env = ENVIRONMENTS[environment];
     ambient = env.ambient;
+    headlightsOn = (env.name == "Night");
     for (Material* m : wallMaterials_) m->color = env.wallColor;
     if (ceilingMaterial_) ceilingMaterial_->color = env.ceilingColor;
     if (floorMaterial_) {
@@ -426,6 +451,8 @@ void Scene::update(float dt) {
 
     for (SceneNode* w : cars[selectedCar].wheels)
         if (w) w->rotation.z -= wheelSpin * dt;
+
+    updateHeadlights();
 
     if (keyLightOrbits) keyLightAngle_ += 25.0f * dt;
     float a = glm::radians(keyLightAngle_);
@@ -453,7 +480,8 @@ void Scene::uploadLights(const Shader& shader) const {
         shader.setVec3(b + "position", spots[i].position);
         shader.setVec3(b + "direction", spots[i].direction);
         shader.setVec3(b + "color", spots[i].color);
-        shader.setFloat(b + "intensity", spotlightsOn ? spots[i].intensity : 0.0f);
+        bool on = spots[i].headlight ? headlightsOn : spotlightsOn;
+        shader.setFloat(b + "intensity", on ? spots[i].intensity : 0.0f);
         shader.setFloat(b + "cosInner", std::cos(glm::radians(spots[i].innerDeg)));
         shader.setFloat(b + "cosOuter", std::cos(glm::radians(spots[i].outerDeg)));
     }
