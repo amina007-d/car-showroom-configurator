@@ -56,13 +56,9 @@ float attenuation(float d) {
 }
 
 void main() {
-    vec3 albedo = uMaterial.color;
-    float alpha = uMaterial.alpha;
-    if (uMaterial.useTexture) {
-        vec4 texel = texture(uTexture, vUV);
-        albedo *= texel.rgb;
-        alpha *= texel.a;
-    }
+    vec4 texel = uMaterial.useTexture ? texture(uTexture, vUV) : vec4(1.0);
+    vec3 albedo = uMaterial.color * texel.rgb;
+    float alpha = uMaterial.alpha * texel.a;
 
     vec3 N = normalize(vNormal);
     if (!gl_FrontFacing) N = -N;
@@ -90,7 +86,7 @@ void main() {
         color = mix(color, reflection, k);
     }
 
-    color += uMaterial.emissive;
+    color += uMaterial.emissive * texel.rgb;
 
     color = pow(clamp(color, 0.0, 1.0), vec3(1.0 / 2.2));
     FragColor = vec4(color, alpha);
