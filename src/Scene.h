@@ -86,6 +86,7 @@ private:
     std::unique_ptr<Mesh> cube_, plane_, ground_, quad_, cylinder_, sphere_;
     std::unique_ptr<Texture> floorTex_;
     std::unique_ptr<Texture> signTex_;
+    std::vector<std::unique_ptr<Texture>> posterTex_;
     std::unique_ptr<SceneNode> root_;
     std::vector<std::unique_ptr<Cubemap>> environmentMaps_;
     std::vector<SceneNode*> closedOnly_;
@@ -110,6 +111,7 @@ private:
     void buildDecor();
     void buildSign(float half);
     void buildBarrier();
+    void buildPosters(float half);
     SceneNode* addCylinder(SceneNode* parent, const std::string& name, glm::vec3 pos, glm::vec3 size, const Material& mat);
     void buildCars(SceneNode* turntable);
     bool addCar(SceneNode* turntable, const std::string& name, const std::string& objPath, int paintPreset,

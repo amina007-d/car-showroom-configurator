@@ -78,6 +78,7 @@ void Scene::buildRoom() {
     buildDecor();
     buildSign(half);
     buildBarrier();
+    buildPosters(half);
 
     Material panel{{0.05f, 0.05f, 0.05f}, 4.0f, 0.0f, {0.95f, 0.92f, 0.84f}};
     for (int row = -1; row <= 1; row += 2)
@@ -245,6 +246,23 @@ void Scene::buildBarrier() {
         r->scale = {glm::length(d), 0.045f, 0.045f};
         r->material = rope;
         root_->addChild(std::move(r));
+    }
+}
+
+void Scene::buildPosters(float half) {
+    const char* files[] = {"porsche930", "supra93", "r34", "aventador"};
+    Material frame{{0.03f, 0.03f, 0.035f}, 64.0f, 0.5f};
+    float z = -6.6f;
+    for (const char* f : files) {
+        auto tex = Texture::fromFile(std::string("assets/textures/posters/") + f + ".png");
+        if (tex) {
+            addBox(root_.get(), "poster frame", {half - 0.05f, 2.7f, z}, {0.08f, 1.85f, 2.7f}, frame);
+            Material poster{{0.0f, 0.0f, 0.0f}, 8.0f, 0.0f, {0.9f, 0.9f, 0.9f}};
+            poster.texture = tex.get();
+            addQuad(root_.get(), "poster", {half - 0.1f, 2.7f, z}, {0.0f, 90.0f, 90.0f}, {2.4f, 1.6f}, poster);
+            posterTex_.push_back(std::move(tex));
+        }
+        z += 4.4f;
     }
 }
 
